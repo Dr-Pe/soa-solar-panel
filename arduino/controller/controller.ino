@@ -91,14 +91,14 @@ void error();
 typedef void (*transition)();
 transition state_table[NUM_OF_STATES][NUM_OF_EVENTS] =
 	{
-		{error, error, error, error, error, error, error},					   // state SETUP
-		{aim_to_Q2_Q4_AXIS, error, error, error, error, error, error},		   // state ON_Q1_Q3_AXIS
+		{error, error, error, error, error, error, error},						  // state SETUP
+		{aim_to_Q2_Q4_AXIS, error, error, error, error, error, error},			  // state ON_Q1_Q3_AXIS
 		{sleeping, aim_to_Q0, aim_to_Q1, aim_to_Q2, aim_to_Q3, aim_to_Q4, error}, // state ON_Q2_Q4_AXIS
-		{sleeping, error, error, error, error, error, aim_to_Q1_Q3_AXIS},		   // state ON_Q0
-		{sleeping, error, error, error, error, error, aim_to_Q1_Q3_AXIS},		   // state ON_Q1
-		{sleeping, error, error, error, error, error, aim_to_Q1_Q3_AXIS},		   // state ON_Q2
-		{sleeping, error, error, error, error, error, aim_to_Q1_Q3_AXIS},		   // state ON_Q3
-		{sleeping, error, error, error, error, error, aim_to_Q1_Q3_AXIS}		   // state ON_Q4
+		{sleeping, error, error, error, error, error, aim_to_Q1_Q3_AXIS},		  // state ON_Q0
+		{sleeping, error, error, error, error, error, aim_to_Q1_Q3_AXIS},		  // state ON_Q1
+		{sleeping, error, error, error, error, error, aim_to_Q1_Q3_AXIS},		  // state ON_Q2
+		{sleeping, error, error, error, error, error, aim_to_Q1_Q3_AXIS},		  // state ON_Q3
+		{sleeping, error, error, error, error, error, aim_to_Q1_Q3_AXIS}		  // state ON_Q4
 
 };
 
