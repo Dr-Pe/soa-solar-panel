@@ -1,83 +1,118 @@
 #include <Servo.h>
 
+// Parameters
+//
+
+#define ZENITH 90
+#define MAX_TIME 1000
+#define ANG_MOVE 5
+#define DIFF_MIN_LDR 50
+
 // Pin map
+//
+
 #define LDR0 A0
 #define LDR1 A1
 
-#define LED 4
+#define LED 2
 #define SERV_ALT 5
+#define SERV_ALT_NEG 6
 
 // Data types
+//
 
 enum machinestate
 {
 	SETUP,
+	WAITING,
+	STEP_EAST,
+	STEP_WEST,
 	BALANCE,
-	GO_SOUTH,
-	GO_NORTH,
 } machine_state;
 
 enum event
 {
-	SET_SENSOR_FINISHED,
-	LDRS_EQUALS,
-	LDR_SOUTH_BIGGEST,
-	LDR_NORTH_BIGGEST
+	WAIT,
+	NONE_IS_BIGGER,
+	EAST_IS_BIGGER,
+	WEST_IS_BIGGER,
 } new_event;
 
 struct arrayofsensors
 {
-	int south;
-	int north;
+	int east;
+	int west;
 } array_of_sensors;
-
-Servo serv_alt;
 
 // Prototypes
 //
 
-void get_event();
-void go_south();
-void go_north();
+event get_event();
+void go_east();
+void go_west();
 void cont();
 void error();
+void wait();
 void init_serv();
 void led_off();
 void led_om();
 void move_serv(int);
 void reset_timer();
 void fsm();
-void wait();
 
 // Matrix
+//
 
-#define NUM_OF_STATES 4
+#define NUM_OF_STATES 5
 #define NUM_OF_EVENTS 4
 
 typedef void (*transition)();
 transition state_table[NUM_OF_STATES][NUM_OF_EVENTS] =
 	{
-		{wait, cont, go_south, go_north},  // state SETUP
-		{error, cont, go_south, go_north}, // state BALANCE
-		{error, cont, go_south, go_north}, // state GO_SOUTH
-		{error, cont, go_south, go_north}, // state GO_NORTH
+		{wait, error, error, error},	 // state SETUP
+		{wait, cont, go_east, go_west},	 // state WAITING
+		{wait, error, error, error},	 // state STEP_EAST
+		{wait, error, error, error},	 // state STEP_WEST
+		{error, cont, go_east, go_west}, // state BALANCE
 
 };
 
-// parameters
-#define SERV_INIT 90
-#define MAX_TIME 500
-#define ANG_MOVE 5
-#define DIFF_MIN_LDR 100
+// Global variables
+//
 
-// globalVar
 unsigned long time_from;
 unsigned long now;
 
-// functions
+Servo serv_alt;
+Servo serv_alt_neg;
+
+// Functions
+//
+
+event get_event()
+{
+	now = millis();
+	if ((now - time_from) >= MAX_TIME)
+	{
+		array_of_sensors.east = analogRead(LDR0);
+		array_of_sensors.west = analogRead(LDR1);
+		if (abs(array_of_sensors.east - array_of_sensors.west) > DIFF_MIN_LDR)
+		{
+			reset_timer();
+			if (array_of_sensors.east > array_of_sensors.west)
+				return EAST_IS_BIGGER;
+			else
+				return WEST_IS_BIGGER;
+		}
+		return NONE_IS_BIGGER;
+	}
+	return WAIT;
+}
+
 void init_serv()
 {
-	serv_alt.write(SERV_INIT);
+	serv_alt.write(ZENITH);
+	serv_alt_neg.write(ZENITH);
 }
 
 void led_on()
@@ -93,6 +128,7 @@ void led_off()
 void move_serv(int offset)
 {
 	serv_alt.write(serv_alt.read() + offset);
+	serv_alt_neg.write(serv_alt_neg.read() - offset);
 }
 
 void reset_timer()
@@ -103,100 +139,60 @@ void reset_timer()
 void cont()
 {
 	led_off();
-	if ((now - time_from) >= MAX_TIME)
-	{
-		reset_timer();
-	}
 	machine_state = BALANCE;
-}
-
-void wait()
-{
 }
 
 void error()
 {
 	// Ini-Debug
-	Serial.print("PROBLEMA");
+	Serial.println("ERROR");
 	// End-Debug
 }
 
-void go_south()
+void wait()
 {
-	machine_state = GO_SOUTH;
+	machine_state = WAITING;
+}
+
+void go_east()
+{
+	machine_state = STEP_EAST;
 	led_on();
 	move_serv(-ANG_MOVE);
-	if ((now - time_from) >= MAX_TIME)
-	{
-		reset_timer();
-	}
 }
 
-void go_north()
+void go_west()
 {
-	machine_state = GO_NORTH;
+	machine_state = STEP_WEST;
 	led_on();
 	move_serv(ANG_MOVE);
-	if ((now - time_from) >= MAX_TIME)
-	{
-		reset_timer();
-	}
-}
-
-void get_event()
-{
-	now = millis();
-
-	if ((now - time_from) >= MAX_TIME)
-	{
-
-		array_of_sensors.south = analogRead(LDR0);
-		array_of_sensors.north = analogRead(LDR1);
-
-		if (abs(array_of_sensors.south - array_of_sensors.north) > DIFF_MIN_LDR)
-		{
-			if (array_of_sensors.south > array_of_sensors.north)
-			{
-				new_event = LDR_SOUTH_BIGGEST;
-			}
-			else
-			{
-				new_event = LDR_NORTH_BIGGEST;
-			}
-		}
-		else
-		{
-			new_event = LDRS_EQUALS;
-		}
-	}
-	else
-	{
-		// new_event = CONTINUE;
-	}
 }
 
 void fsm()
 {
-	while (1)
-	{
-		get_event();
-		state_table[machine_state][new_event]();
-	}
+	new_event = get_event();
+	Serial.println(machine_state);
+	state_table[machine_state][new_event]();
 }
 
-// principal
+// Main
+//
+
 void setup()
 {
 	// Ini-Debug
 	Serial.begin(9600);
 	// End-Debug
 
-	machine_state = SETUP;
 	pinMode(LED, OUTPUT);
 	digitalWrite(LED, HIGH);
+
 	serv_alt.attach(SERV_ALT);
+	serv_alt_neg.attach(SERV_ALT_NEG);
+
 	init_serv();
 	reset_timer();
+	machine_state = WAITING;
 }
 
 void loop()
