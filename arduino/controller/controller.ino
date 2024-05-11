@@ -4,7 +4,7 @@
 //
 
 #define ZENITH 90
-#define MAX_TIME 1000
+#define MAX_TIME 500
 #define ANG_MOVE 5
 #define DIFF_MIN_LDR 50
 
@@ -17,6 +17,7 @@
 #define LED 2
 #define SERV_ALT 5
 #define SERV_ALT_NEG 6
+#define RESTART_PIN 7
 
 // Data types
 //
@@ -36,6 +37,7 @@ enum event
 	NONE_IS_BIGGER,
 	EAST_IS_BIGGER,
 	WEST_IS_BIGGER,
+	RESTART,
 } new_event;
 
 struct arrayofsensors
@@ -48,32 +50,33 @@ struct arrayofsensors
 //
 
 event get_event();
-void go_east();
-void go_west();
+void change_machine_state(machinestate new_state);
+void start();
+void led_on();
+void led_off();
+void move_serv(int offset);
+void reset_timer();
 void cont();
 void error();
 void wait();
-void init_serv();
-void led_off();
-void led_om();
-void move_serv(int);
-void reset_timer();
+void go_east();
+void go_west();
 void fsm();
 
 // Matrix
 //
 
 #define NUM_OF_STATES 5
-#define NUM_OF_EVENTS 4
+#define NUM_OF_EVENTS 5
 
 typedef void (*transition)();
 transition state_table[NUM_OF_STATES][NUM_OF_EVENTS] =
 	{
-		{wait, error, error, error},	 // state SETUP
-		{wait, cont, go_east, go_west},	 // state WAITING
-		{wait, error, error, error},	 // state STEP_EAST
-		{wait, error, error, error},	 // state STEP_WEST
-		{error, cont, go_east, go_west}, // state BALANCE
+		{wait, error, error, error, start},		// state SETUP
+		{wait, cont, go_east, go_west, start},	// state WAITING
+		{wait, error, error, error, start},		// state STEP_EAST
+		{wait, error, error, error, start},		// state STEP_WEST
+		{error, cont, go_east, go_west, start}, // state BALANCE
 
 };
 
@@ -91,6 +94,9 @@ Servo serv_alt_neg;
 
 event get_event()
 {
+	if (digitalRead(RESTART_PIN) == HIGH)
+		return RESTART;
+
 	now = millis();
 	if ((now - time_from) >= MAX_TIME)
 	{
@@ -109,10 +115,39 @@ event get_event()
 	return WAIT;
 }
 
-void init_serv()
+void change_machine_state(machinestate new_state)
 {
+	if (machine_state != new_state)
+	{
+		switch (new_state)
+		{
+		case SETUP:
+			Serial.println("SETUP");
+			break;
+		case WAITING:
+			Serial.println("WAITING");
+			break;
+		case STEP_EAST:
+			Serial.println("STEP_EAST");
+			break;
+		case STEP_WEST:
+			Serial.println("STEP_WEST");
+			break;
+		case BALANCE:
+			Serial.println("BALANCE");
+			break;
+		}
+	}
+	machine_state = new_state;
+}
+
+void start()
+{
+	digitalWrite(LED, HIGH);
 	serv_alt.write(ZENITH);
 	serv_alt_neg.write(ZENITH);
+	reset_timer();
+	change_machine_state(SETUP);
 }
 
 void led_on()
@@ -139,7 +174,7 @@ void reset_timer()
 void cont()
 {
 	led_off();
-	machine_state = BALANCE;
+	change_machine_state(BALANCE);
 }
 
 void error()
@@ -151,19 +186,19 @@ void error()
 
 void wait()
 {
-	machine_state = WAITING;
+	change_machine_state(WAITING);
 }
 
 void go_east()
 {
-	machine_state = STEP_EAST;
+	change_machine_state(STEP_EAST);
 	led_on();
 	move_serv(-ANG_MOVE);
 }
 
 void go_west()
 {
-	machine_state = STEP_WEST;
+	change_machine_state(STEP_WEST);
 	led_on();
 	move_serv(ANG_MOVE);
 }
@@ -171,7 +206,6 @@ void go_west()
 void fsm()
 {
 	new_event = get_event();
-	Serial.println(machine_state);
 	state_table[machine_state][new_event]();
 }
 
@@ -180,19 +214,15 @@ void fsm()
 
 void setup()
 {
-	// Ini-Debug
 	Serial.begin(9600);
-	// End-Debug
 
 	pinMode(LED, OUTPUT);
-	digitalWrite(LED, HIGH);
+	pinMode(RESTART_PIN, INPUT);
 
 	serv_alt.attach(SERV_ALT);
 	serv_alt_neg.attach(SERV_ALT_NEG);
 
-	init_serv();
-	reset_timer();
-	machine_state = WAITING;
+	start();
 }
 
 void loop()
