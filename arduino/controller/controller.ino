@@ -77,7 +77,6 @@ transition state_table[NUM_OF_STATES][NUM_OF_EVENTS] =
 		{wait, error, error, error, start},		// state STEP_EAST
 		{wait, error, error, error, start},		// state STEP_WEST
 		{error, cont, go_east, go_west, start}, // state BALANCE
-
 };
 
 // Global variables
