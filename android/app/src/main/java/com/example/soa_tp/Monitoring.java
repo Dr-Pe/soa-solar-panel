@@ -5,8 +5,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
-import android.os.Handler;
-import android.util.Log;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
@@ -32,12 +30,12 @@ public class Monitoring extends AppCompatActivity{
     BarChart barChart;
     public static int val = 1;
 
-
+    private BroadcastReceiver receiverSensors;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.monitoreo_actividad);
+        setContentView(R.layout.activity_monitoring);
 
         dataPerHour = new ArrayList<Integer>();
         currentHour = -1;
@@ -64,23 +62,13 @@ public class Monitoring extends AppCompatActivity{
         yAxis.setAxisMinimum(0f); //
         yAxis.setAxisMaximum(100f); //
 
-        LocalBroadcastManager.getInstance(this).registerReceiver(new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context context, Intent intent) {
-                int sensorEast = intent.getIntExtra("sensorEast", 0);
-                int sensorWest = intent.getIntExtra("sensorWest", 0);
-                updateBar(sensorEast, sensorWest);
-            }
-        }, new IntentFilter("monitoring.UPDATE_BAR"));
 
-
+        initReceivers();
 
         barChart.invalidate(); // pinta el grafico
-
-
     }
     //TODO:
-    // posiblemente en onPause haya que guardar la lista y desregistrar el receiver (esto si fuese un intent no se podria hacer)
+    // posiblemente en onPause haya que guardar la lista de barras y desregistrar el receiver (esto si fuese un intent no se podria hacer)
     // onResume recuperar la lista e imprimirla y volver a registrar el receiver
 
 
@@ -134,6 +122,34 @@ public class Monitoring extends AppCompatActivity{
         bars.get(currentHour).setY((int) Math.round( avgOfHour.isPresent() ? avgOfHour.getAsDouble() : 0));
 
         barChart.invalidate();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        unregisterReceivers();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        initReceivers();
+    }
+    private void initReceivers(){
+        receiverSensors = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                int sensorEast = intent.getIntExtra("sensorEast", 0);
+                int sensorWest = intent.getIntExtra("sensorWest", 0);
+                updateBar(sensorEast, sensorWest);
+            }
+        };
+        LocalBroadcastManager.getInstance(this).registerReceiver(receiverSensors, new IntentFilter("monitoring.UPDATE_BAR"));
+
+    }
+
+    private void unregisterReceivers(){
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(receiverSensors);
     }
 
 
