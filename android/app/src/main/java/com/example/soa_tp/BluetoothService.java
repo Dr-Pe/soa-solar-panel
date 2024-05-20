@@ -40,15 +40,17 @@ public class BluetoothService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
+        Log.e("error", "entro oncreate");
         btAdapter = BluetoothAdapter.getDefaultAdapter();
         // no existe placa bluetooth
         if (btAdapter == null) {
-            sendMSGtoActivities("main_activity.NO_BLUETOOTH");
+            sendMSGtoActivities("all_acitivities.NO_BLUETOOTH");
+            Log.e("error", "no bluetooth");
             return;
         }
         // no esta habilitado el bluetooth
         if (!btAdapter.isEnabled()) {
-            sendMSGtoActivities("main_activity.BLUETOOTH_DISABLED");
+            sendMSGtoActivities("all_acitivities.BLUETOOTH_DISABLED");
             return;
         }
 
@@ -64,7 +66,7 @@ public class BluetoothService extends Service {
 
             monitorLightSensors();
         } catch (IOException e) {
-            sendMSGtoActivities("main_activity.BLUETOOTH_DISCONNECTED");
+            sendMSGtoActivities("all_acitivities.BLUETOOTH_DISCONNECTED");
         }
     }
 
@@ -99,7 +101,7 @@ public class BluetoothService extends Service {
                     sendDataToMonitoring(sensorEast, sensorWest);
                 }
             } catch (IOException e) {
-                sendMSGtoActivities("main_activity.BLUETOOTH_DISCONNECTED");
+                sendMSGtoActivities("all_acitivities.BLUETOOTH_DISCONNECTED");
             }
         }
     }
@@ -135,7 +137,7 @@ public class BluetoothService extends Service {
         try {
             outStream.write(msgBuffer);
         } catch (IOException e) {
-            sendMSGtoActivities("main_activity.BLUETOOTH_DISCONNECTED");
+            sendMSGtoActivities("all_acitivities.BLUETOOTH_DISCONNECTED");
         }
     }
 

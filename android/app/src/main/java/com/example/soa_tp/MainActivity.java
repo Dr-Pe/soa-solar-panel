@@ -39,52 +39,12 @@ public class MainActivity extends AppCompatActivity {
 
         Button openMonitoringButton = findViewById(R.id.openMonitoringButton);
         openMonitoringButton.setOnClickListener(v -> {
-            startService(bluetoothServiceIntent);
             Intent intent = new Intent(getApplicationContext(), Monitoring.class);
             startActivity(intent);
-            finish();
+            startService(bluetoothServiceIntent);
+
         });
     }
-
-    private void initReceivers(){
-        //TODO:  talvez esto tambien va en el monitoring
-        receiverNOBLUETOOTH = new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context context, Intent intent) {
-                Toast.makeText(context, "El dispositivo no soporta Bluetooth", Toast.LENGTH_LONG).show();
-            }
-        };
-
-        LocalBroadcastManager.getInstance(this).registerReceiver(receiverNOBLUETOOTH, new IntentFilter("main_activity.NO_BLUETOOTH"));
-
-        receiverBLUETOOTHDISABLED = new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context context, Intent intent) {
-                Toast.makeText(context, "El dispositivo tiene el Bluetooth desactivado", Toast.LENGTH_LONG).show();
-            }
-        };
-
-        LocalBroadcastManager.getInstance(this).registerReceiver(receiverBLUETOOTHDISABLED, new IntentFilter("main_activity.BLUETOOTH_DISABLED"));
-
-
-        receiverBLUETOOTHDISCONNECTED = new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context context, Intent intent) {
-                Toast.makeText(context, "Fallo la conexion con el dispositivo", Toast.LENGTH_LONG).show();
-            }
-        };
-        LocalBroadcastManager.getInstance(this).registerReceiver(receiverBLUETOOTHDISCONNECTED, new IntentFilter("main_activity.BLUETOOTH_DISCONNECTED"));
-    }
-
-    private void unregisterReceivers(){
-        LocalBroadcastManager.getInstance(this).unregisterReceiver(receiverNOBLUETOOTH);
-        LocalBroadcastManager.getInstance(this).unregisterReceiver(receiverBLUETOOTHDISABLED);
-        LocalBroadcastManager.getInstance(this).unregisterReceiver(receiverBLUETOOTHDISCONNECTED);
-    }
-
-
-
-
     @Override
     protected void onPause() {
         super.onPause();
@@ -96,4 +56,41 @@ public class MainActivity extends AppCompatActivity {
         super.onResume();
         initReceivers();
     }
+
+    private void initReceivers(){
+        receiverNOBLUETOOTH = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                Toast.makeText(context, "El dispositivo no soporta Bluetooth", Toast.LENGTH_LONG).show();
+            }
+        };
+        LocalBroadcastManager.getInstance(this).registerReceiver(receiverNOBLUETOOTH, new IntentFilter("all_acitivities.NO_BLUETOOTH"));
+
+        receiverBLUETOOTHDISABLED = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                Toast.makeText(context, "El dispositivo tiene el Bluetooth desactivado", Toast.LENGTH_LONG).show();
+            }
+        };
+        LocalBroadcastManager.getInstance(this).registerReceiver(receiverBLUETOOTHDISABLED, new IntentFilter("all_acitivities.BLUETOOTH_DISABLED"));
+
+        receiverBLUETOOTHDISCONNECTED = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                Toast.makeText(context, "Fallo la conexion con el dispositivo", Toast.LENGTH_LONG).show();
+            }
+        };
+        LocalBroadcastManager.getInstance(this).registerReceiver(receiverBLUETOOTHDISCONNECTED, new IntentFilter("all_acitivities.BLUETOOTH_DISCONNECTED"));
+    }
+
+    private void unregisterReceivers(){
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(receiverNOBLUETOOTH);
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(receiverBLUETOOTHDISABLED);
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(receiverBLUETOOTHDISCONNECTED);
+    }
+
+
+
+
+
 }

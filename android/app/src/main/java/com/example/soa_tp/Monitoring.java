@@ -5,6 +5,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
+import android.util.Log;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
@@ -30,12 +32,17 @@ public class Monitoring extends AppCompatActivity{
     BarChart barChart;
     public static int val = 1;
 
-    private BroadcastReceiver receiverSensors;
+    private BroadcastReceiver receiverSENSORS;
+    private BroadcastReceiver receiverNOBLUETOOTH;
+    private BroadcastReceiver receiverBLUETOOTHDISABLED;
+    private BroadcastReceiver receiverBLUETOOTHDISCONNECTED;
 
+    // TODO: al volver a la primer actividad y regresar a monitoreo, se crea otra instancia de los receivers ya que se ejecuta onCreate denuevo
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_monitoring);
+        initReceivers();
 
         dataPerHour = new ArrayList<Integer>();
         currentHour = -1;
@@ -63,15 +70,27 @@ public class Monitoring extends AppCompatActivity{
         yAxis.setAxisMaximum(100f); //
 
 
-        initReceivers();
-
         barChart.invalidate(); // pinta el grafico
+    }
+    @Override
+    protected void onPause() {
+        super.onPause();
+        unregisterReceivers();
+    }
+    @Override
+    protected void onStop() {
+        super.onStop();
+        unregisterReceivers();
+    }
+    @Override
+    protected void onResume() {
+        super.onResume();
+        initReceivers();
     }
     //TODO:
     // posiblemente en onPause haya que guardar la lista de barras y desregistrar el receiver (esto si fuese un intent no se podria hacer)
-    // onResume recuperar la lista e imprimirla y volver a registrar el receiver
-
-
+    // onResume recuperar la lista (talvez usar SQlite) e imprimirla y volver a registrar el receiver
+    
     private void initBars(){
         for( int i = 0; i < 24; i++){
             bars.add(new BarEntry((float)i,3));
@@ -124,19 +143,9 @@ public class Monitoring extends AppCompatActivity{
         barChart.invalidate();
     }
 
-    @Override
-    protected void onPause() {
-        super.onPause();
-        unregisterReceivers();
-    }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-        initReceivers();
-    }
     private void initReceivers(){
-        receiverSensors = new BroadcastReceiver() {
+        receiverSENSORS = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
                 int sensorEast = intent.getIntExtra("sensorEast", 0);
@@ -144,12 +153,38 @@ public class Monitoring extends AppCompatActivity{
                 updateBar(sensorEast, sensorWest);
             }
         };
-        LocalBroadcastManager.getInstance(this).registerReceiver(receiverSensors, new IntentFilter("monitoring.UPDATE_BAR"));
+        LocalBroadcastManager.getInstance(this).registerReceiver(receiverSENSORS, new IntentFilter("monitoring.UPDATE_BAR"));
+
+        receiverNOBLUETOOTH = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                Toast.makeText(context, "El dispositivo no soporta Bluetooth", Toast.LENGTH_LONG).show();
+            }
+        };
+        LocalBroadcastManager.getInstance(this).registerReceiver(receiverNOBLUETOOTH, new IntentFilter("all_acitivities.NO_BLUETOOTH"));
+
+        receiverBLUETOOTHDISABLED = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                Toast.makeText(context, "El dispositivo tiene el Bluetooth desactivado", Toast.LENGTH_LONG).show();
+            }
+        };
+        LocalBroadcastManager.getInstance(this).registerReceiver(receiverBLUETOOTHDISABLED, new IntentFilter("all_acitivities.BLUETOOTH_DISABLED"));
+        receiverBLUETOOTHDISCONNECTED = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                Toast.makeText(context, "Fallo la conexion con el dispositivo", Toast.LENGTH_LONG).show();
+            }
+        };
+        LocalBroadcastManager.getInstance(this).registerReceiver(receiverBLUETOOTHDISCONNECTED, new IntentFilter("all_acitivities.BLUETOOTH_DISCONNECTED"));
 
     }
 
     private void unregisterReceivers(){
-        LocalBroadcastManager.getInstance(this).unregisterReceiver(receiverSensors);
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(receiverSENSORS);
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(receiverNOBLUETOOTH);
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(receiverBLUETOOTHDISABLED);
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(receiverBLUETOOTHDISCONNECTED);
     }
 
 
