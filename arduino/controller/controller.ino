@@ -1,4 +1,5 @@
 #include <Servo.h>
+#include <SoftwareSerial.h>
 
 // Parameters
 //
@@ -18,6 +19,8 @@
 #define SERV_ALT 5
 #define SERV_ALT_NEG 6
 #define RESTART_PIN 7
+#define RX 10
+#define TX 11
 
 // Data types
 //
@@ -88,13 +91,18 @@ unsigned long now;
 Servo serv_alt;
 Servo serv_alt_neg;
 
+SoftwareSerial bt(RX, TX);
+
 // Functions
 //
 
 event get_event()
 {
-	if (digitalRead(RESTART_PIN) == HIGH)
-		return RESTART;
+//	if (digitalRead(RESTART_PIN) == HIGH)
+//		return RESTART;
+
+  if(bt.available() && bt.read() == 'R')
+    return RESTART;
 
 	now = millis();
 	if ((now - time_from) >= MAX_TIME)
@@ -174,6 +182,9 @@ void cont()
 {
 	led_off();
 	change_machine_state(BALANCE);
+  bt.print(array_of_sensors.east);
+  bt.print("-");
+  bt.print(array_of_sensors.west);
 }
 
 void error()
@@ -214,6 +225,7 @@ void fsm()
 void setup()
 {
 	Serial.begin(9600);
+  bt.begin(38400);
 
 	pinMode(LED, OUTPUT);
 	pinMode(RESTART_PIN, INPUT);
