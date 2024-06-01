@@ -7,7 +7,7 @@
 #define ZENITH 90
 #define MAX_TIME 500
 #define ANG_MOVE 5
-#define DIFF_MIN_LDR 50
+#define DIFF_MIN_LDR 200
 
 // Pin map
 //
@@ -101,14 +101,15 @@ event get_event()
 //	if (digitalRead(RESTART_PIN) == HIGH)
 //		return RESTART;
 
-  if(bt.available() && bt.read() == 'R')
-    return RESTART;
+  // if(bt.available() && bt.read() == 'R')
+  //   return RESTART;
 
 	now = millis();
 	if ((now - time_from) >= MAX_TIME)
 	{
 		array_of_sensors.east = analogRead(LDR0);
 		array_of_sensors.west = analogRead(LDR1);
+    
 		if (abs(array_of_sensors.east - array_of_sensors.west) > DIFF_MIN_LDR)
 		{
 			reset_timer();
@@ -169,8 +170,14 @@ void led_off()
 
 void move_serv(int offset)
 {
-	serv_alt.write(serv_alt.read() + offset);
-	serv_alt_neg.write(serv_alt_neg.read() - offset);
+  int serv_alt_val = serv_alt.read();
+  int serv_alt_neg_val = serv_alt_neg.read();
+  if(serv_alt_val >= 175 || serv_alt_val <= 5)
+    return;
+
+	serv_alt.write(serv_alt_val + offset);
+	serv_alt_neg.write(serv_alt_neg_val - offset);
+  
 }
 
 void reset_timer()
@@ -182,6 +189,7 @@ void cont()
 {
 	led_off();
 	change_machine_state(BALANCE);
+  delay(200);
   bt.print(array_of_sensors.east);
   bt.print("-");
   bt.print(array_of_sensors.west);
