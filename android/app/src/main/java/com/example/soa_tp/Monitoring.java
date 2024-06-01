@@ -4,8 +4,10 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -19,8 +21,12 @@ import com.github.mikephil.charting.data.BarDataSet;
 import com.github.mikephil.charting.data.BarEntry;
 import com.github.mikephil.charting.formatter.ValueFormatter;
 
+import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.Locale;
 import java.util.OptionalDouble;
 
@@ -44,6 +50,15 @@ public class Monitoring extends AppCompatActivity{
         setContentView(R.layout.activity_monitoring);
         initReceivers();
 
+        Date now = new Date();
+
+
+        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+        String today = sdf.format(now);
+        TextView textDate = findViewById(R.id.text_date);
+        textDate.setText("Análisis del día: " + today);
+
+
         dataPerHour = new ArrayList<Integer>();
         currentHour = -1;
 
@@ -51,13 +66,20 @@ public class Monitoring extends AppCompatActivity{
         bars = new ArrayList<>();
         initBars();
 
-        BarDataSet dataSet = new BarDataSet(bars, "valor promedio x hora");
+        BarDataSet dataSet = new BarDataSet(bars, "Intensidad de luz por hora");
+        dataSet.setColor(Color.BLACK);
+        dataSet.setValueTextColor(Color.BLACK);
+        dataSet.setValueTextSize(12f);
+
         BarData data = new BarData(dataSet);
         barChart.setData(data);
         barChart.getDescription().setEnabled(false);
 
 
         XAxis xAxis = barChart.getXAxis();
+        xAxis.setTextColor(Color.BLACK);
+        xAxis.setGridColor(Color.BLACK);
+        xAxis.setTextSize(12f);
         xAxis.setGranularity(1f); // seteo la diferencia entre valores de barras en eje X 1-2-3-...
         xAxis.setValueFormatter(new ValueFormatter() {
             @Override
@@ -65,10 +87,16 @@ public class Monitoring extends AppCompatActivity{
                 return String.format(Locale.getDefault(), "%d", (int) value);
             }
         });
-        YAxis yAxis = barChart.getAxisLeft();
-        yAxis.setAxisMinimum(0f); //
-        yAxis.setAxisMaximum(100f); //
+        YAxis leftYAxis = barChart.getAxisLeft();
+        leftYAxis.setTextColor(Color.BLACK);
+        leftYAxis.setGridColor(Color.BLACK);
+        leftYAxis.setTextSize(12f);
+        leftYAxis.setAxisMinimum(0f); //
+        leftYAxis.setAxisMaximum(100f); //
 
+        YAxis rightYAxis = barChart.getAxisRight();
+        rightYAxis.setTextColor(Color.BLACK);
+        rightYAxis.setTextSize(10f);
 
         barChart.invalidate(); // pinta el grafico
     }
@@ -94,6 +122,7 @@ public class Monitoring extends AppCompatActivity{
     private void initBars(){
         for( int i = 0; i < 24; i++){
             bars.add(new BarEntry((float)i,3));
+
         }
 /*
         barras.add(new BarEntry(0f, 1));
@@ -161,7 +190,7 @@ public class Monitoring extends AppCompatActivity{
                 Toast.makeText(context, "El dispositivo no soporta Bluetooth", Toast.LENGTH_LONG).show();
             }
         };
-        LocalBroadcastManager.getInstance(this).registerReceiver(receiverNOBLUETOOTH, new IntentFilter("all_acitivities.NO_BLUETOOTH"));
+        LocalBroadcastManager.getInstance(this).registerReceiver(receiverNOBLUETOOTH, new IntentFilter("all_activities.NO_BLUETOOTH"));
 
         receiverBLUETOOTHDISABLED = new BroadcastReceiver() {
             @Override
@@ -169,14 +198,14 @@ public class Monitoring extends AppCompatActivity{
                 Toast.makeText(context, "El dispositivo tiene el Bluetooth desactivado", Toast.LENGTH_LONG).show();
             }
         };
-        LocalBroadcastManager.getInstance(this).registerReceiver(receiverBLUETOOTHDISABLED, new IntentFilter("all_acitivities.BLUETOOTH_DISABLED"));
+        LocalBroadcastManager.getInstance(this).registerReceiver(receiverBLUETOOTHDISABLED, new IntentFilter("all_activities.BLUETOOTH_DISABLED"));
         receiverBLUETOOTHDISCONNECTED = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
                 Toast.makeText(context, "Fallo la conexion con el dispositivo", Toast.LENGTH_LONG).show();
             }
         };
-        LocalBroadcastManager.getInstance(this).registerReceiver(receiverBLUETOOTHDISCONNECTED, new IntentFilter("all_acitivities.BLUETOOTH_DISCONNECTED"));
+        LocalBroadcastManager.getInstance(this).registerReceiver(receiverBLUETOOTHDISCONNECTED, new IntentFilter("all_activities.BLUETOOTH_DISCONNECTED"));
 
     }
 

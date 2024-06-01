@@ -5,16 +5,18 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:gravity="center"
+    android:background="@drawable/monitoring_background"
     >
 
     <TextView
+        android:id="@+id/text_date"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="grafico"
-        android:textSize="24dp"
-
-        android:layout_marginTop="16dp"
-        android:layout_marginBottom="16dp"
+        android:text=""
+        android:textSize="15dp"
+        android:textColor="@android:color/black"
+        android:padding="4dp"
+        android:gravity="center"
         />
     <com.github.mikephil.charting.charts.BarChart
         android:id="@+id/barChartGraphic"

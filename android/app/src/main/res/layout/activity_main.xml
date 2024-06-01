@@ -2,7 +2,8 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:gravity="center">
+    android:gravity="center"
+    android:background="@drawable/main_background">
 
     <Button
         android:id="@+id/restartSystemButton"
@@ -11,6 +12,8 @@
         android:text="Reiniciar sistema"
         android:layout_centerInParent="true"
         android:layout_marginBottom="20dp"
+        android:backgroundTint="@color/yellow"
+        android:textColor="@color/black"
         />
 
     <Button
@@ -20,6 +23,8 @@
         android:text="Monitorear sistema"
         android:layout_below="@+id/restartSystemButton"
         android:layout_centerInParent="true"
+        android:backgroundTint="@color/yellow"
+        android:textColor="@color/black"
         />
 
 

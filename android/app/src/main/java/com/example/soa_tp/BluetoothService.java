@@ -108,7 +108,7 @@ public class BluetoothService extends Service {
                 if(inStream.available() > 0){
                     numBytes = inStream.read(buffer);
                     String datos = new String(buffer, 0, numBytes);
-                    String[] parseo = datos.split("-");             // el sensor envia este formato: 10-20
+                    String[] parseo = datos.split(" ");             // el sensor envia este formato: 10-20
                     int sensorEast = Integer.parseInt(parseo[0]);
                     int sensorWest = Integer.parseInt(parseo[1]);
 
