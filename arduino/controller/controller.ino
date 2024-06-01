@@ -101,8 +101,8 @@ event get_event()
 //	if (digitalRead(RESTART_PIN) == HIGH)
 //		return RESTART;
 
-  // if(bt.available() && bt.read() == 'R')
-  //   return RESTART;
+  if(bt.available() && bt.read() == 'R')
+    return RESTART;
 
 	now = millis();
 	if ((now - time_from) >= MAX_TIME)
@@ -189,10 +189,15 @@ void cont()
 {
 	led_off();
 	change_machine_state(BALANCE);
-  delay(200);
+  
+  bt.flush();
   bt.print(array_of_sensors.east);
-  bt.print("-");
+  bt.flush();
+  bt.print(" ");
+  bt.flush();
   bt.print(array_of_sensors.west);
+  bt.flush();
+  bt.print("\n");
 }
 
 void error()
