@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.Button;
 import android.widget.Toast;
 
@@ -21,7 +22,7 @@ public class MainActivity extends AppCompatActivity {
     private BroadcastReceiver receiverNOBLUETOOTH;
     private BroadcastReceiver receiverBLUETOOTHDISABLED;
     private BroadcastReceiver receiverBLUETOOTHDISCONNECTED;
-
+    private BroadcastReceiver receiverBLUETOOTHHC_05_ERROR;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,10 +62,11 @@ public class MainActivity extends AppCompatActivity {
         receiverNOBLUETOOTH = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
+                Log.e("asdasd", "entro oncreate");
                 Toast.makeText(context, "El dispositivo no soporta Bluetooth", Toast.LENGTH_LONG).show();
             }
         };
-        LocalBroadcastManager.getInstance(this).registerReceiver(receiverNOBLUETOOTH, new IntentFilter("all_acitivities.NO_BLUETOOTH"));
+        LocalBroadcastManager.getInstance(this).registerReceiver(receiverNOBLUETOOTH, new IntentFilter("all_activities.NO_BLUETOOTH"));
 
         receiverBLUETOOTHDISABLED = new BroadcastReceiver() {
             @Override
@@ -72,7 +74,7 @@ public class MainActivity extends AppCompatActivity {
                 Toast.makeText(context, "El dispositivo tiene el Bluetooth desactivado", Toast.LENGTH_LONG).show();
             }
         };
-        LocalBroadcastManager.getInstance(this).registerReceiver(receiverBLUETOOTHDISABLED, new IntentFilter("all_acitivities.BLUETOOTH_DISABLED"));
+        LocalBroadcastManager.getInstance(this).registerReceiver(receiverBLUETOOTHDISABLED, new IntentFilter("all_activities.BLUETOOTH_DISABLED"));
 
         receiverBLUETOOTHDISCONNECTED = new BroadcastReceiver() {
             @Override
@@ -80,13 +82,22 @@ public class MainActivity extends AppCompatActivity {
                 Toast.makeText(context, "Fallo la conexion con el dispositivo", Toast.LENGTH_LONG).show();
             }
         };
-        LocalBroadcastManager.getInstance(this).registerReceiver(receiverBLUETOOTHDISCONNECTED, new IntentFilter("all_acitivities.BLUETOOTH_DISCONNECTED"));
+        LocalBroadcastManager.getInstance(this).registerReceiver(receiverBLUETOOTHDISCONNECTED, new IntentFilter("all_activities.BLUETOOTH_DISCONNECTED"));
+
+        receiverBLUETOOTHHC_05_ERROR = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                Toast.makeText(context, "Fallo la conexion con el dispositivo", Toast.LENGTH_LONG).show();
+            }
+        };
+        LocalBroadcastManager.getInstance(this).registerReceiver(receiverBLUETOOTHHC_05_ERROR, new IntentFilter("all_activities.HC_05_ERROR"));
     }
 
     private void unregisterReceivers(){
         LocalBroadcastManager.getInstance(this).unregisterReceiver(receiverNOBLUETOOTH);
         LocalBroadcastManager.getInstance(this).unregisterReceiver(receiverBLUETOOTHDISABLED);
         LocalBroadcastManager.getInstance(this).unregisterReceiver(receiverBLUETOOTHDISCONNECTED);
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(receiverBLUETOOTHHC_05_ERROR);
     }
 
 

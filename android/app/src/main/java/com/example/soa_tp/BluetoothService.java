@@ -17,6 +17,8 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.Set;
 import java.util.UUID;
 
 public class BluetoothService extends Service {
@@ -25,6 +27,7 @@ public class BluetoothService extends Service {
 
     private BluetoothAdapter btAdapter;
     private BluetoothSocket btSocket;
+    private BluetoothDevice sunflowerBT;
     private InputStream inStream;
     private OutputStream outStream;
     private Thread monitoingThread;
@@ -44,18 +47,29 @@ public class BluetoothService extends Service {
         btAdapter = BluetoothAdapter.getDefaultAdapter();
         // no existe placa bluetooth
         if (btAdapter == null) {
-            sendMSGtoActivities("all_acitivities.NO_BLUETOOTH");
+            sendMSGtoActivities("all_activities.NO_BLUETOOTH");
             Log.e("error", "no bluetooth");
             return;
         }
         // no esta habilitado el bluetooth
         if (!btAdapter.isEnabled()) {
-            sendMSGtoActivities("all_acitivities.BLUETOOTH_DISABLED");
+            sendMSGtoActivities("all_activities.BLUETOOTH_DISABLED");
             return;
         }
 
-        String addressMacSunflower = "00:00:00:00:00:00"; // mac de nuestra placa bt
-        BluetoothDevice sunflowerBT = btAdapter.getRemoteDevice(addressMacSunflower);    // asocia la placa bt del girasol
+        // busco el hc 05
+        Set<BluetoothDevice> devicesBT = btAdapter.getBondedDevices();
+        for (BluetoothDevice device : devicesBT){
+            if(device.getName().equals("HC-05"))
+            {
+                sunflowerBT = device;
+            }
+        }
+
+        if(sunflowerBT == null){
+            sendMSGtoActivities("all_activities.HC_05_ERROR");
+        }
+
         try {
 
             btSocket = sunflowerBT.createRfcommSocketToServiceRecord(MY_UUID);    // asocia la conexion al servicio de comunicacion del hc-05
@@ -66,7 +80,7 @@ public class BluetoothService extends Service {
 
             monitorLightSensors();
         } catch (IOException e) {
-            sendMSGtoActivities("all_acitivities.BLUETOOTH_DISCONNECTED");
+            sendMSGtoActivities("all_activities.BLUETOOTH_DISCONNECTED");
         }
     }
 
@@ -101,7 +115,7 @@ public class BluetoothService extends Service {
                     sendDataToMonitoring(sensorEast, sensorWest);
                 }
             } catch (IOException e) {
-                sendMSGtoActivities("all_acitivities.BLUETOOTH_DISCONNECTED");
+                sendMSGtoActivities("all_activities.BLUETOOTH_DISCONNECTED");
             }
         }
     }
@@ -137,7 +151,7 @@ public class BluetoothService extends Service {
         try {
             outStream.write(msgBuffer);
         } catch (IOException e) {
-            sendMSGtoActivities("all_acitivities.BLUETOOTH_DISCONNECTED");
+            sendMSGtoActivities("all_activities.BLUETOOTH_DISCONNECTED");
         }
     }
 
