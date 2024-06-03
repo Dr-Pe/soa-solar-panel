@@ -98,9 +98,9 @@ SoftwareSerial bt(RX, TX);
 
 event get_event()
 {
-//	if (digitalRead(RESTART_PIN) == HIGH)
-//		return RESTART;
-
+	if (digitalRead(RESTART_PIN) == LOW)
+		return RESTART;
+  
   if(bt.available() && bt.read() == 'R')
     return RESTART;
 
@@ -189,15 +189,11 @@ void cont()
 {
 	led_off();
 	change_machine_state(BALANCE);
-  
-  bt.flush();
-  bt.print(array_of_sensors.east);
-  bt.flush();
-  bt.print(" ");
-  bt.flush();
-  bt.print(array_of_sensors.west);
-  bt.flush();
-  bt.print("\n");
+  // bt.print("[");
+  // bt.print(array_of_sensors.east);
+  // bt.print(",");
+  // bt.print(array_of_sensors.west);
+  // bt.print("]");
 }
 
 void error()
@@ -238,7 +234,7 @@ void fsm()
 void setup()
 {
 	Serial.begin(9600);
-  bt.begin(38400);
+  bt.begin(9600);
 
 	pinMode(LED, OUTPUT);
 	pinMode(RESTART_PIN, INPUT);
