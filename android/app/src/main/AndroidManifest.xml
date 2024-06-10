@@ -26,8 +26,11 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".Monitoring">
-
+        <activity
+            android:name=".Monitoring">
+        </activity>
+        <activity
+            android:name=".SensorBT">
         </activity>
 
         <service android:name=".BluetoothService"></service>

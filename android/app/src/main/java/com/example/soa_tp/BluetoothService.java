@@ -68,6 +68,7 @@ public class BluetoothService extends Service {
 
         if(sunflowerBT == null){
             sendMSGtoActivities("all_activities.HC_05_ERROR");
+            return;
         }
 
         try {

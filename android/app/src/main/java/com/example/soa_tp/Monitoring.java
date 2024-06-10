@@ -4,6 +4,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
@@ -35,6 +36,8 @@ public class Monitoring extends AppCompatActivity{
     private ArrayList<Integer> dataPerHour;
     private int currentHour;
 
+
+
     BarChart barChart;
     public static int val = 1;
 
@@ -43,9 +46,15 @@ public class Monitoring extends AppCompatActivity{
     private BroadcastReceiver receiverBLUETOOTHDISABLED;
     private BroadcastReceiver receiverBLUETOOTHDISCONNECTED;
 
+
+    SharedPreferences listData = getSharedPreferences("dataList",MODE_PRIVATE);;
+    SharedPreferences.Editor editor = listData.edit();
+   // SharedPreferences sh = getSharedPreferences("dataList", MODE_APPEND);
+
     // TODO: al volver a la primer actividad y regresar a monitoreo, se crea otra instancia de los receivers ya que se ejecuta onCreate denuevo
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_monitoring);
         initReceivers();
@@ -124,31 +133,6 @@ public class Monitoring extends AppCompatActivity{
             bars.add(new BarEntry((float)i,3));
 
         }
-/*
-        barras.add(new BarEntry(0f, 1));
-        barras.add(new BarEntry(1f, 3));
-        barras.add(new BarEntry(2f, 10));
-        barras.add(new BarEntry(3f, 1));
-        barras.add(new BarEntry(4f, 2));
-        barras.add(new BarEntry(5f, 77));
-        barras.add(new BarEntry(6f, 1));
-        barras.add(new BarEntry(7f, 2));
-        barras.add(new BarEntry(8f, 3));
-        barras.add(new BarEntry(9f, 1));
-        barras.add(new BarEntry(10f, 2));
-        barras.add(new BarEntry(11f, 3));
-        barras.add(new BarEntry(12f, 45));
-        barras.add(new BarEntry(13f, 2));
-        barras.add(new BarEntry(14f, 3));
-        barras.add(new BarEntry(15f, 44));
-        barras.add(new BarEntry(16f, 45));
-        barras.add(new BarEntry(17f, 100));
-        barras.add(new BarEntry(18f, 25));
-        barras.add(new BarEntry(19f, 25));
-        barras.add(new BarEntry(20f, 25));
-        barras.add(new BarEntry(21f, 25));
-        barras.add(new BarEntry(22f, 50));
-        barras.add(new BarEntry(23f, 100));*/
     }
 
     private void updateBar(int sensorEast, int sensorWest){
@@ -216,6 +200,23 @@ public class Monitoring extends AppCompatActivity{
         LocalBroadcastManager.getInstance(this).unregisterReceiver(receiverBLUETOOTHDISCONNECTED);
     }
 
+    private void uploadData(){
+        //TODO: puede ser que reciba la hora y solo suba datos de la hora actual en vez de actualizar toda la lista
+        for(Integer i = 0; i< dataPerHour.size(); i++){
+            editor.putString(i.toString(), dataPerHour.get(i).toString());
+        }
+        editor.commit();
+    }
+
+    private void downloadData(){
+        String data;
+        for(Integer i = 0; i< dataPerHour.size(); i++) {
+            data = listData.getString(i.toString(), "default");
+            dataPerHour.set(i, Integer.parseInt(data));
+        }
+        //TODO: posiblemente haya que pintar
+
+    }
 
 }
 
