@@ -7,6 +7,7 @@ import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -21,6 +22,7 @@ import com.github.mikephil.charting.data.BarDataSet;
 import com.github.mikephil.charting.data.BarEntry;
 import com.github.mikephil.charting.formatter.ValueFormatter;
 
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -31,7 +33,7 @@ import java.util.OptionalDouble;
 
 public class Monitoring extends AppCompatActivity{
     private ArrayList<BarEntry> bars;
-    private ArrayList<Integer> dataPerHour;
+    private ArrayList<Float> dataPerHour;
     private int currentHour;
 
 
@@ -43,42 +45,40 @@ public class Monitoring extends AppCompatActivity{
     private BroadcastReceiver receiverBLUETOOTHDISABLED;
     private BroadcastReceiver receiverBLUETOOTHDISCONNECTED;
 
+    Thread tr;
 
     SharedPreferences listData;
     SharedPreferences.Editor editor;
    // SharedPreferences sh = getSharedPreferences("dataList", MODE_APPEND);
 
-    // TODO: al volver a la primer actividad y regresar a monitoreo, se crea otra instancia de los receivers ya que se ejecuta onCreate denuevo
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
         super.onCreate(savedInstanceState);
-        SharedPreferences listData = getSharedPreferences("dataList",MODE_PRIVATE);
-        SharedPreferences.Editor editor = listData.edit();
         setContentView(R.layout.activity_monitoring);
+
+        listData = getSharedPreferences("dataList",MODE_PRIVATE);
+        editor = listData.edit();
+
+
         initReceivers();
 
         Date now = new Date();
-
 
         SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
         String today = sdf.format(now);
         TextView textDate = findViewById(R.id.text_date);
         textDate.setText("Análisis del día: " + today);
 
-
-        dataPerHour = new ArrayList<Integer>();
+        dataPerHour = new ArrayList<Float>();
         currentHour = -1;
-
-        try{
-            downloadData();
-        }catch(Exception e){
-            e.printStackTrace();
-        }
 
         barChart = findViewById(R.id.barChartGraphic);
         bars = new ArrayList<>();
         initBars();
+        downloadData();
+
 
         BarDataSet dataSet = new BarDataSet(bars, "Intensidad de luz por hora");
         dataSet.setColor(Color.BLACK);
@@ -113,36 +113,62 @@ public class Monitoring extends AppCompatActivity{
         rightYAxis.setTextSize(10f);
 
         barChart.invalidate(); // pinta el grafico
+        /*
+ // para testear
+        tr = new Thread(this::pintar);
+        tr.start();
+*/
+
+    }
+    private void pintar(){
+        int x = 100;
+        int y = 100;
+        while (true) {
+            try {
+                Thread.sleep(2000);
+                if(x > 1200)
+                    x=100;
+                if(y > 1200)
+                    y=100;
+                updateBar(x,y);
+                x+=100;
+                y+=100;
+
+            } catch (Exception e) {
+
+            }
+        }
     }
     @Override
     protected void onPause() {
         super.onPause();
+        Log.e("pausa", "pausando");
         unregisterReceivers();
     }
     @Override
     protected void onStop() {
         super.onStop();
+        Log.e("stop", "stop");
+        finish();   // TODO: talvez innecesario
         unregisterReceivers();
     }
     @Override
     protected void onResume() {
         super.onResume();
+        downloadData();
         initReceivers();
     }
     //TODO:
     // posiblemente en onPause haya que guardar la lista de barras y desregistrar el receiver (esto si fuese un intent no se podria hacer)
-    // onResume recuperar la lista (talvez usar SQlite) e imprimirla y volver a registrar el receiver
+
     
     private void initBars(){
         for( int i = 0; i < 24; i++){
-
             bars.add(new BarEntry((float)i,0));
-
         }
     }
 
     private void updateBar(int sensorEast, int sensorWest){
-
         Calendar calendar = Calendar.getInstance();
         int newHour = calendar.get(Calendar.HOUR_OF_DAY);
 
@@ -151,18 +177,24 @@ public class Monitoring extends AppCompatActivity{
             currentHour = newHour;
         }
 
-        int successPercentage = ((sensorEast + sensorWest) * 100)/2046 ;
-
+        float successPercentage = ((sensorEast + sensorWest) * 100)/2046 ;
         dataPerHour.add(successPercentage);
+        bars.get(currentHour).setY(getAvgValue());
 
-        OptionalDouble avgOfHour = dataPerHour.stream().mapToInt(a -> a).average();
-
-        bars.get(currentHour).setY((int) Math.round( avgOfHour.isPresent() ? avgOfHour.getAsDouble() : 0));
-
+        uploadData(currentHour);
         barChart.invalidate();
     }
 
+    private Float getAvgValue(){
+        int cant= dataPerHour.size();
+        float value = 0;
 
+        for(int i = 0; i < dataPerHour.size(); i++){
+            value +=dataPerHour.get(i);
+        }
+        float avg = value/cant;
+        return avg;
+    }
     private void initReceivers(){
         receiverSENSORS = new BroadcastReceiver() {
             @Override
@@ -206,22 +238,25 @@ public class Monitoring extends AppCompatActivity{
         LocalBroadcastManager.getInstance(this).unregisterReceiver(receiverBLUETOOTHDISCONNECTED);
     }
 
-    private void uploadData(){
-        //TODO: puede ser que reciba la hora y solo suba datos de la hora actual en vez de actualizar toda la lista
-        for(int i = 0; i< dataPerHour.size(); i++){
-            editor.putString(Integer.toString(i), dataPerHour.get(i).toString());
-        }
+    private void uploadData(int hour){
+        editor.putString(Integer.toString(hour), "");
         editor.commit();
+
+        editor.putString(Integer.toString(hour), String.valueOf(getAvgValue()));
+        editor.commit();
+        
     }
 
-    private void downloadData() throws Exception{
+    private void downloadData() {
         String data;
-        for(int i = 0; i< dataPerHour.size(); i++) {
+        for(int i = 0; i< 24; i++) {
             data = listData.getString(Integer.toString(i), "default");
-            dataPerHour.set(i, Integer.parseInt(data));
-        }
-        //TODO: posiblemente haya que pintar
+            if (!data.equals("default")){
+                bars.set(i, new BarEntry((float)i,Float.parseFloat(data)));
+            }
 
+        }
+        barChart.invalidate();
     }
 
 

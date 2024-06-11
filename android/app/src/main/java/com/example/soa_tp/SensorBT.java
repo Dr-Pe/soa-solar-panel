@@ -20,7 +20,6 @@ public class SensorBT extends AppCompatActivity implements SensorEventListener {
 
         mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
 
-        mSensorManager.registerListener(this, mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER), SensorManager.SENSOR_DELAY_NORMAL);
 
         // para cortar: mSensorManager.unregisterListener(this, mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER));
     }
@@ -32,8 +31,8 @@ public class SensorBT extends AppCompatActivity implements SensorEventListener {
             float y = event.values[1];
             float z = event.values[2];
 
-            if(x > 100 || y > 100 || z > 100){  // osea si hubo algun cambio significativo enviamos el mensaje
-                bluetoothServiceIntent.putExtra("message", "restart");
+            if(x > 10 || y > 10 || z > 10){  // osea si hubo algun cambio significativo enviamos el mensaje
+                bluetoothServiceIntent.putExtra("message", "R");
                 startService(bluetoothServiceIntent);
             }
         }

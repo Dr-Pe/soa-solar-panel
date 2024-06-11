@@ -32,43 +32,36 @@ public class BluetoothService extends Service {
     private boolean connected = false;
 
 
-
-    //TODO: posiblemente hay que verificar PAIR
-
-
     @SuppressLint("MissingPermission")  // a partir de cierta version en android pide permisos en tiempo de ejecucion, al pedo
     @Override
     public void onCreate() {
         super.onCreate();
-        Log.e("error", "entro oncreate");
+
         btAdapter = BluetoothAdapter.getDefaultAdapter();
         // no existe placa bluetooth
         if (btAdapter == null) {
             sendMSGtoActivities("all_activities.NO_BLUETOOTH");
             Log.e("error", "no bluetooth");
-
             return;
         }
         // no esta habilitado el bluetooth
         if (!btAdapter.isEnabled()) {
-            Log.e("error", "no habilitado");
             sendMSGtoActivities("all_activities.BLUETOOTH_DISABLED");
+            Log.e("error", "no habilitado");
             return;
         }
 
         // busco el hc 05
         Set<BluetoothDevice> devicesBT = btAdapter.getBondedDevices();
         for (BluetoothDevice device : devicesBT){
-
-            if(device.getName().equals("HC-05  "))
-            {
+            if(device.getName().equals("HC-05 ")) {
                 sunflowerBT = device;
             }
         }
 
         if(sunflowerBT == null){
-            Log.e("error", "no encontrado");
             sendMSGtoActivities("all_activities.HC_05_ERROR");
+            Log.e("error", "hc-05 no encontrado");
             return;
         }
 
@@ -83,6 +76,7 @@ public class BluetoothService extends Service {
             monitorLightSensors();
         } catch (IOException e) {
             sendMSGtoActivities("all_activities.BLUETOOTH_DISCONNECTED");
+            Log.e("error", "bt desconectado");
         }
     }
 
@@ -109,16 +103,12 @@ public class BluetoothService extends Service {
         while (true) {
             try {
                 if(inStream.available() > 0){
-
                     numBytes = inStream.read(buffer);
                     String data = new String(buffer, 0, numBytes);
-                    Log.e("probando", data);
 
-
-                    if(data.matches("\\([0-9]*,[0-9]*\\)")){
-                    //if(data.matches("\\([0-9][0-9][0-9]?,[0-9][0-9][0-9]?\\)")){
-                        Log.e("validado", data);
-                        String[] parseo = data.split(" ");             // el sensor envia este formato: 10-20
+                    if(data.matches("\\([0-9]+,[0-9]+\\)\\n")){
+                        data = data.replace("(", "").replace(")", "").replace("\n", "");
+                        String[] parseo = data.split(",");             // el sensor envia este formato: 10-20
                         int sensorEast = Integer.parseInt(parseo[0]);
                         int sensorWest = Integer.parseInt(parseo[1]);
 
@@ -129,6 +119,7 @@ public class BluetoothService extends Service {
                 }
             } catch (IOException e) {
                 sendMSGtoActivities("all_activities.BLUETOOTH_DISCONNECTED");
+                Log.e("error", "bt en curso desconectado");
             }
         }
     }
@@ -156,15 +147,14 @@ public class BluetoothService extends Service {
 
         if (connected && message != null ){
             sendMsgToSunflower(message);
-            Log.e("bt start", "enviando: " + message);
         }
+
         return START_STICKY;
     }
 
-    public void sendMsgToSunflower(String mensaje) {
-        byte[] msgBuffer = mensaje.getBytes();
+    public void sendMsgToSunflower(String message) {
+        byte[] msgBuffer = message.getBytes();
         try {
-            Log.e("bt", "enviando: " + mensaje);
             outStream.write(msgBuffer);
         } catch (IOException e) {
             sendMSGtoActivities("all_activities.BLUETOOTH_DISCONNECTED");
