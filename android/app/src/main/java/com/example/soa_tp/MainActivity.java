@@ -34,7 +34,7 @@ public class MainActivity extends AppCompatActivity {
 
         Button restartSystemButton = findViewById(R.id.restartSystemButton);
         restartSystemButton.setOnClickListener(v -> {
-            bluetoothServiceIntent.putExtra("message", "restart");
+            bluetoothServiceIntent.putExtra("message", "R");
             startService(bluetoothServiceIntent);   // como ya esta iniciado, solo envia el mensaje y se toma con el metodo "onStartCommand"
         });
 

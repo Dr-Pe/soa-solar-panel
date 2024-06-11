@@ -7,7 +7,6 @@ import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
-import android.util.Log;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -23,12 +22,11 @@ import com.github.mikephil.charting.data.BarEntry;
 import com.github.mikephil.charting.formatter.ValueFormatter;
 
 import java.text.SimpleDateFormat;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
+import java.util.Map;
 import java.util.OptionalDouble;
 
 public class Monitoring extends AppCompatActivity{
@@ -39,7 +37,6 @@ public class Monitoring extends AppCompatActivity{
 
 
     BarChart barChart;
-    public static int val = 1;
 
     private BroadcastReceiver receiverSENSORS;
     private BroadcastReceiver receiverNOBLUETOOTH;
@@ -47,8 +44,8 @@ public class Monitoring extends AppCompatActivity{
     private BroadcastReceiver receiverBLUETOOTHDISCONNECTED;
 
 
-    SharedPreferences listData = getSharedPreferences("dataList",MODE_PRIVATE);;
-    SharedPreferences.Editor editor = listData.edit();
+    SharedPreferences listData;
+    SharedPreferences.Editor editor;
    // SharedPreferences sh = getSharedPreferences("dataList", MODE_APPEND);
 
     // TODO: al volver a la primer actividad y regresar a monitoreo, se crea otra instancia de los receivers ya que se ejecuta onCreate denuevo
@@ -56,6 +53,8 @@ public class Monitoring extends AppCompatActivity{
     protected void onCreate(Bundle savedInstanceState) {
 
         super.onCreate(savedInstanceState);
+        SharedPreferences listData = getSharedPreferences("dataList",MODE_PRIVATE);
+        SharedPreferences.Editor editor = listData.edit();
         setContentView(R.layout.activity_monitoring);
         initReceivers();
 
@@ -70,6 +69,12 @@ public class Monitoring extends AppCompatActivity{
 
         dataPerHour = new ArrayList<Integer>();
         currentHour = -1;
+
+        try{
+            downloadData();
+        }catch(Exception e){
+            e.printStackTrace();
+        }
 
         barChart = findViewById(R.id.barChartGraphic);
         bars = new ArrayList<>();
@@ -130,7 +135,8 @@ public class Monitoring extends AppCompatActivity{
     
     private void initBars(){
         for( int i = 0; i < 24; i++){
-            bars.add(new BarEntry((float)i,3));
+
+            bars.add(new BarEntry((float)i,0));
 
         }
     }
@@ -202,21 +208,22 @@ public class Monitoring extends AppCompatActivity{
 
     private void uploadData(){
         //TODO: puede ser que reciba la hora y solo suba datos de la hora actual en vez de actualizar toda la lista
-        for(Integer i = 0; i< dataPerHour.size(); i++){
-            editor.putString(i.toString(), dataPerHour.get(i).toString());
+        for(int i = 0; i< dataPerHour.size(); i++){
+            editor.putString(Integer.toString(i), dataPerHour.get(i).toString());
         }
         editor.commit();
     }
 
-    private void downloadData(){
+    private void downloadData() throws Exception{
         String data;
-        for(Integer i = 0; i< dataPerHour.size(); i++) {
-            data = listData.getString(i.toString(), "default");
+        for(int i = 0; i< dataPerHour.size(); i++) {
+            data = listData.getString(Integer.toString(i), "default");
             dataPerHour.set(i, Integer.parseInt(data));
         }
         //TODO: posiblemente haya que pintar
 
     }
+
 
 }
 

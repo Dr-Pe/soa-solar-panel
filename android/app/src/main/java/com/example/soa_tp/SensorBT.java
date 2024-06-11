@@ -28,9 +28,9 @@ public class SensorBT extends AppCompatActivity implements SensorEventListener {
     @Override
     public void onSensorChanged(SensorEvent event) {
         if(event.sensor.getType() == Sensor.TYPE_ACCELEROMETER){
-            Float x = event.values[0];
-            Float y = event.values[1];
-            Float z = event.values[2];
+            float x = event.values[0];
+            float y = event.values[1];
+            float z = event.values[2];
 
             if(x > 100 || y > 100 || z > 100){  // osea si hubo algun cambio significativo enviamos el mensaje
                 bluetoothServiceIntent.putExtra("message", "restart");

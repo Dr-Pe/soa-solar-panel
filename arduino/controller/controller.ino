@@ -8,6 +8,7 @@
 #define MAX_TIME 500
 #define ANG_MOVE 5
 #define DIFF_MIN_LDR 200
+#define TIME_DATA 4000
 
 // Pin map
 //
@@ -87,6 +88,9 @@ transition state_table[NUM_OF_STATES][NUM_OF_EVENTS] =
 
 unsigned long time_from;
 unsigned long now;
+
+unsigned long time_from_bt;
+unsigned long now_bt;
 
 Servo serv_alt;
 Servo serv_alt_neg;
@@ -172,7 +176,7 @@ void move_serv(int offset)
 {
   int serv_alt_val = serv_alt.read();
   int serv_alt_neg_val = serv_alt_neg.read();
-  if(serv_alt_val >= 175 || serv_alt_val <= 5)
+  if(serv_alt_val >= 170 || serv_alt_val <= 10)
     return;
 
 	serv_alt.write(serv_alt_val + offset);
@@ -183,17 +187,25 @@ void move_serv(int offset)
 void reset_timer()
 {
 	time_from = millis();
+  
 }
 
 void cont()
 {
 	led_off();
 	change_machine_state(BALANCE);
-  // bt.print("[");
-  // bt.print(array_of_sensors.east);
-  // bt.print(",");
-  // bt.print(array_of_sensors.west);
-  // bt.print("]");
+
+  now_bt=millis();
+  if ((now_bt - time_from_bt) >= TIME_DATA)
+	{
+    time_from_bt = millis();
+    bt.print("(");
+    bt.print(array_of_sensors.east);
+    bt.print(",");
+    bt.print(array_of_sensors.west);
+    bt.print(")");
+    bt.print("\n");
+  }
 }
 
 void error()
@@ -241,7 +253,7 @@ void setup()
 
 	serv_alt.attach(SERV_ALT);
 	serv_alt_neg.attach(SERV_ALT_NEG);
-
+  time_from_bt = millis();
 	start();
 }
 
