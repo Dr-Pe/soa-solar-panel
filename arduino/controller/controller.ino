@@ -9,6 +9,8 @@
 #define ANG_MOVE 5
 #define DIFF_MIN_LDR 200
 #define TIME_DATA 4000
+#define SERVO_LOWER_LIMIT 10
+#define SERVO_UPPER_LIMIT 170
 
 // Pin map
 //
@@ -176,7 +178,7 @@ void move_serv(int offset)
 {
   int serv_alt_val = serv_alt.read();
   int serv_alt_neg_val = serv_alt_neg.read();
-  if(serv_alt_val >= 170 || serv_alt_val <= 10)
+  if(serv_alt_val >= SERVO_UPPER_LIMIT || serv_alt_val <= SERVO_LOWER_LIMIT)
     return;
 
 	serv_alt.write(serv_alt_val + offset);
@@ -210,9 +212,7 @@ void cont()
 
 void error()
 {
-	// Ini-Debug
 	Serial.println("ERROR");
-	// End-Debug
 }
 
 void wait()
