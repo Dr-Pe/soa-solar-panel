@@ -15,13 +15,8 @@ public class SensorBT extends AppCompatActivity implements SensorEventListener {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-
         bluetoothServiceIntent = new Intent(this, BluetoothService.class);
-
         mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
-
-
-        // para cortar: mSensorManager.unregisterListener(this, mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER));
     }
 
     @Override

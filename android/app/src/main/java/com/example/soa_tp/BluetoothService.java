@@ -89,8 +89,6 @@ public class BluetoothService extends Service {
         stopSelf();
     }
 
-
-    // hilo que lee los valores que recibe del SE y envia los datos a la actividad monitoreo
     private void monitorLightSensors() {
         monitoingThread = new Thread(this::readLightSensors);
         monitoingThread.start();
@@ -122,10 +120,8 @@ public class BluetoothService extends Service {
         }
     }
 
-
     // envia los datos de los sensores a la actividad monitoreo
     // y esa actividad lo lee con "BroadcastReceiver"
-
     private void sendDataToMonitoring(int sensorEast, int sensorWest) {
         Intent intent = new Intent();
         intent.setAction("monitoring.UPDATE_BAR");
@@ -134,8 +130,6 @@ public class BluetoothService extends Service {
 
         LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
     }
-
-
 
     //  siempre al iniciar un servicio, se ejecuta onCreate y despues onStartCommand SIEMPRE
     //  en la primer ejecucion no existe nada en message y tira error al metodo sendMsgToSunflower...

@@ -46,8 +46,6 @@ public class Monitoring extends AppCompatActivity{
 
     SharedPreferences listData;
     SharedPreferences.Editor editor;
-   // SharedPreferences sh = getSharedPreferences("dataList", MODE_APPEND);
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -110,32 +108,8 @@ public class Monitoring extends AppCompatActivity{
         rightYAxis.setTextSize(10f);
 
         barChart.invalidate(); // pinta el grafico
-        /*
- // para testear
-        tr = new Thread(this::pintar);
-        tr.start();
-*/
-
     }
-    private void pintar(){
-        int x = 100;
-        int y = 100;
-        while (true) {
-            try {
-                Thread.sleep(2000);
-                if(x > 1200)
-                    x=100;
-                if(y > 1200)
-                    y=100;
-                updateBar(x,y);
-                x+=100;
-                y+=100;
 
-            } catch (Exception e) {
-
-            }
-        }
-    }
     @Override
     protected void onPause() {
         super.onPause();
@@ -146,7 +120,7 @@ public class Monitoring extends AppCompatActivity{
     protected void onStop() {
         super.onStop();
         Log.e("stop", "stop");
-        finish();   // TODO: talvez innecesario
+        finish();
         unregisterReceivers();
     }
     @Override
@@ -265,7 +239,7 @@ public class Monitoring extends AppCompatActivity{
             for(int i = 0; i< 24; i++) {
                 bars.set(i, new BarEntry((float)i,0));
             }
-        } else if ( today_sh.equals(today)){    // si la fecha de hoy, es igual a la guardada, entonces actualizo las barras
+        } else {    // si la fecha de hoy, es igual a la guardada, entonces actualizo las barras
             String data;
             for(int i = 0; i< 24; i++) {
                 data = listData.getString(Integer.toString(i), "default");
