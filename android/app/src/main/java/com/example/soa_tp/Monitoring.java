@@ -22,14 +22,11 @@ import com.github.mikephil.charting.data.BarDataSet;
 import com.github.mikephil.charting.data.BarEntry;
 import com.github.mikephil.charting.formatter.ValueFormatter;
 
-import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
-import java.util.Map;
-import java.util.OptionalDouble;
 
 public class Monitoring extends AppCompatActivity{
     private ArrayList<BarEntry> bars;
@@ -158,9 +155,7 @@ public class Monitoring extends AppCompatActivity{
         downloadData();
         initReceivers();
     }
-    //TODO:
-    // posiblemente en onPause haya que guardar la lista de barras y desregistrar el receiver (esto si fuese un intent no se podria hacer)
-
+    
     
     private void initBars(){
         for( int i = 0; i < 24; i++){
@@ -248,6 +243,36 @@ public class Monitoring extends AppCompatActivity{
     }
 
     private void downloadData() {
+
+
+        // fecha de shared preference
+        String today_sh = listData.getString("fecha", "default");
+
+        // fecha de hoy
+        Date now = new Date();
+        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+        String today = sdf.format(now);
+
+        // si la fecha no existe en el sh, entonces subo la fecha de hoy
+        if(today_sh.equals("default")) {
+            editor.putString("fecha", today);
+            for(int i = 0; i< 24; i++) {
+                bars.set(i, new BarEntry((float)i,0));
+                editor.putString(Integer.toString(i), "0");
+            }
+            editor.commit();
+        } else if (!today_sh.equals(today)){    // si la fecha de hoy no es igual a la guardada, limpio las barras
+            for(int i = 0; i< 24; i++) {
+                bars.set(i, new BarEntry((float)i,0));
+            }
+        } else if ( today_sh.equals(today)){    // si la fecha de hoy, es igual a la guardada, entonces actualizo las barras
+            String data;
+            for(int i = 0; i< 24; i++) {
+                data = listData.getString(Integer.toString(i), "default");
+                bars.set(i, new BarEntry((float)i,Float.parseFloat(data)));
+            }
+        }
+/*
         String data;
         for(int i = 0; i< 24; i++) {
             data = listData.getString(Integer.toString(i), "default");
@@ -255,10 +280,9 @@ public class Monitoring extends AppCompatActivity{
                 bars.set(i, new BarEntry((float)i,Float.parseFloat(data)));
             }
 
-        }
+        }*/
+
         barChart.invalidate();
     }
-
-
 }
 
