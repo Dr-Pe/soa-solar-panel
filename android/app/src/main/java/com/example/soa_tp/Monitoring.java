@@ -42,10 +42,9 @@ public class Monitoring extends AppCompatActivity{
     private BroadcastReceiver receiverBLUETOOTHDISABLED;
     private BroadcastReceiver receiverBLUETOOTHDISCONNECTED;
 
-    Thread tr;
 
-    SharedPreferences listData;
-    SharedPreferences.Editor editor;
+    private SharedPreferences listData;
+    private SharedPreferences.Editor editor;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

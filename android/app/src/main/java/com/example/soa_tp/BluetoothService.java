@@ -31,16 +31,6 @@ public class BluetoothService extends Service {
 
     private boolean connected = false;
 
-    private static BluetoothService bluetoothService;
-
-    public static BluetoothService getInstacce(){
-        if (bluetoothService == null){
-            bluetoothService = new BluetoothService();
-        }
-
-        return bluetoothService;
-    }
-
     @SuppressLint("MissingPermission")  // a partir de cierta version en android pide permisos en tiempo de ejecucion, al pedo
     @Override
     public void onCreate() {
@@ -52,12 +42,14 @@ public class BluetoothService extends Service {
         if (btAdapter == null) {
             sendMSGtoActivities("all_activities.NO_BLUETOOTH");
             Log.e("error", "no bluetooth");
+            stopSelf();
             return;
         }
         // no esta habilitado el bluetooth
         if (!btAdapter.isEnabled()) {
             sendMSGtoActivities("all_activities.BLUETOOTH_DISABLED");
             Log.e("error", "no habilitado");
+            stopSelf();
             return;
         }
 
@@ -72,6 +64,7 @@ public class BluetoothService extends Service {
         if(sunflowerBT == null){
             sendMSGtoActivities("all_activities.HC_05_ERROR");
             Log.e("error", "hc-05 no encontrado");
+            stopSelf();
             return;
         }
 
@@ -85,8 +78,22 @@ public class BluetoothService extends Service {
 
             monitorLightSensors();
         } catch (IOException e) {
+
             sendMSGtoActivities("all_activities.BLUETOOTH_DISCONNECTED");
             Log.e("error", "bt desconectado");
+            stopSelf();
+        }
+
+    }
+    @Override
+    public  void onDestroy(){
+        super.onDestroy();
+        if (btSocket != null) {
+            try {
+                btSocket.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -96,7 +103,7 @@ public class BluetoothService extends Service {
         intent.setAction(msg);
         LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
 
-        stopSelf();
+
     }
 
     private void monitorLightSensors() {
@@ -126,6 +133,7 @@ public class BluetoothService extends Service {
             } catch (IOException e) {
                 sendMSGtoActivities("all_activities.BLUETOOTH_DISCONNECTED");
                 Log.e("error", "bt en curso desconectado");
+                stopSelf();
             }
         }
     }
@@ -146,9 +154,11 @@ public class BluetoothService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         String message = intent.getStringExtra("message");
-        Log.e("onStartCommand", "pasa");
+        Log.e("onStartCommand", "recibiendo mensaje en service");
         if (connected && message != null ){
             sendMsgToSunflower(message);
+            sendMSGtoActivities("MainActivity.HC_05_OK");
+            Log.e("onStartCommand", "mensaje enviado con exito");
         }
 
         return START_STICKY;
@@ -160,6 +170,7 @@ public class BluetoothService extends Service {
             outStream.write(msgBuffer);
         } catch (IOException e) {
             sendMSGtoActivities("all_activities.BLUETOOTH_DISCONNECTED");
+            stopSelf();
         }
     }
 
