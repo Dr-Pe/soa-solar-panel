@@ -28,29 +28,38 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private BroadcastReceiver receiverBLUETOOTHDISCONNECTED;
     private BroadcastReceiver receiverBLUETOOTHHC_05_ERROR;
 
+    private Thread btThread;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+
         bluetoothServiceIntent = new Intent(this, BluetoothService.class);
-        //startService(bluetoothServiceIntent);   // inicia el servicio si no esta iniciado
 
         Button restartSystemButton = findViewById(R.id.restartSystemButton);
         restartSystemButton.setOnClickListener(v -> {
+
             bluetoothServiceIntent.putExtra("message", "R");
-            startService(bluetoothServiceIntent);   // como ya esta iniciado, solo envia el mensaje y se toma con el metodo "onStartCommand"
+          //  startService(bluetoothServiceIntent);   // como ya esta iniciado, solo envia el mensaje y se toma con el metodo "onStartCommand"
+            btThread = new Thread(this::initBt);
+            btThread.start();
         });
 
         Button openMonitoringButton = findViewById(R.id.openMonitoringButton);
         openMonitoringButton.setOnClickListener(v -> {
             Intent intent = new Intent(getApplicationContext(), Monitoring.class);
             startActivity(intent);
-            startService(bluetoothServiceIntent);
-
+        //   startService(bluetoothServiceIntent);
+            btThread = new Thread(this::initBt);
+            btThread.start();
         });
 
         mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+    }
+
+    private void initBt(){
+        startService(bluetoothServiceIntent);   // como ya esta iniciado, solo envia el mensaje y se toma con el metodo "onStartCommand"
 
     }
     @Override

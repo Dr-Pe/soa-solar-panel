@@ -31,12 +31,22 @@ public class BluetoothService extends Service {
 
     private boolean connected = false;
 
+    private static BluetoothService bluetoothService;
+
+    public static BluetoothService getInstacce(){
+        if (bluetoothService == null){
+            bluetoothService = new BluetoothService();
+        }
+
+        return bluetoothService;
+    }
 
     @SuppressLint("MissingPermission")  // a partir de cierta version en android pide permisos en tiempo de ejecucion, al pedo
     @Override
     public void onCreate() {
         super.onCreate();
 
+        Log.e("onCrate", "creando service");
         btAdapter = BluetoothAdapter.getDefaultAdapter();
         // no existe placa bluetooth
         if (btAdapter == null) {
@@ -85,7 +95,7 @@ public class BluetoothService extends Service {
         Intent intent = new Intent();
         intent.setAction(msg);
         LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
-
+        
         stopSelf();
     }
 
@@ -136,7 +146,7 @@ public class BluetoothService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         String message = intent.getStringExtra("message");
-
+        Log.e("onStartCommand", "pasa");
         if (connected && message != null ){
             sendMsgToSunflower(message);
         }

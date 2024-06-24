@@ -60,9 +60,9 @@ public class Monitoring extends AppCompatActivity{
         initReceivers();
 
         Date now = new Date();
-
         SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
         String today = sdf.format(now);
+
         TextView textDate = findViewById(R.id.text_date);
         textDate.setText("Análisis del día: " + today);
 
