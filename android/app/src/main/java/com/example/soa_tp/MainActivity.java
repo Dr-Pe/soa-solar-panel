@@ -46,7 +46,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
         restartSystemButton = findViewById(R.id.restartSystemButton);
         restartSystemButton.setOnClickListener(v -> {
-            disableButtons();
+           // disableButtons();
             bluetoothServiceIntent.putExtra("message", "R");
           //  startService(bluetoothServiceIntent);   // como ya esta iniciado, solo envia el mensaje y se toma con el metodo "onStartCommand"
             btThread = new Thread(this::initBt);
@@ -55,7 +55,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
         openMonitoringButton = findViewById(R.id.openMonitoringButton);
         openMonitoringButton.setOnClickListener(v -> {
-            disableButtons();
+          //  disableButtons();
             Intent intent = new Intent(getApplicationContext(), Monitoring.class);
             startActivity(intent);
         //   startService(bluetoothServiceIntent);
@@ -92,7 +92,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     protected void onResume() {
         super.onResume();
         initReceivers();
-        enableButtons();
+        //enableButtons();
 
     }
 
@@ -120,7 +120,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             @Override
             public void onReceive(Context context, Intent intent) {
                 Toast.makeText(context, "El dispositivo no soporta Bluetooth", Toast.LENGTH_LONG).show();
-                enableButtons();
+               // enableButtons();
             }
         };
         LocalBroadcastManager.getInstance(this).registerReceiver(receiver_no_bluetooth, new IntentFilter("all_activities.NO_BLUETOOTH"));
@@ -129,7 +129,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             @Override
             public void onReceive(Context context, Intent intent) {
                 Toast.makeText(context, "El dispositivo tiene el Bluetooth desactivado", Toast.LENGTH_LONG).show();
-                enableButtons();
+               // enableButtons();
             }
         };
         LocalBroadcastManager.getInstance(this).registerReceiver(receiver_bluetooth_disabled, new IntentFilter("all_activities.BLUETOOTH_DISABLED"));
@@ -138,7 +138,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             @Override
             public void onReceive(Context context, Intent intent) {
                 Toast.makeText(context, "Fallo la conexion con el dispositivo", Toast.LENGTH_LONG).show();
-                enableButtons();
+                //enableButtons();
             }
         };
         LocalBroadcastManager.getInstance(this).registerReceiver(receiver_bluetooth_disconnected, new IntentFilter("all_activities.BLUETOOTH_DISCONNECTED"));
@@ -147,7 +147,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             @Override
             public void onReceive(Context context, Intent intent) {
                 Toast.makeText(context, "Fallo la conexion con el dispositivo", Toast.LENGTH_LONG).show();
-                enableButtons();
+                //enableButtons();
             }
         };
         LocalBroadcastManager.getInstance(this).registerReceiver(receiver_bluetooth_HC_05_error, new IntentFilter("all_activities.HC_05_ERROR"));
@@ -156,7 +156,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             @Override
             public void onReceive(Context context, Intent intent) {
                 Toast.makeText(context, "Mensaje enviado con exito", Toast.LENGTH_LONG).show();
-                enableButtons();
+                //enableButtons();
             }
         };
         LocalBroadcastManager.getInstance(this).registerReceiver(receiver_bluetooth_msg_ok, new IntentFilter("MainActivity.HC_05_OK"));
