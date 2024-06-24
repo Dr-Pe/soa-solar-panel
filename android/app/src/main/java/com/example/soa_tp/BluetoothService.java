@@ -64,7 +64,7 @@ public class BluetoothService extends Service {
         // busco el hc 05
         Set<BluetoothDevice> devicesBT = btAdapter.getBondedDevices();
         for (BluetoothDevice device : devicesBT){
-            if(device.getName().contains("HC-05")) {
+            if(device.getName().equals("HC-05 ")) {
                 sunflowerBT = device;
             }
         }
