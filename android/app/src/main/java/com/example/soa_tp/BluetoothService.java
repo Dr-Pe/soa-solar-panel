@@ -95,7 +95,7 @@ public class BluetoothService extends Service {
         Intent intent = new Intent();
         intent.setAction(msg);
         LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
-        
+
         stopSelf();
     }
 

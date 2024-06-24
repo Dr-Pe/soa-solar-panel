@@ -29,9 +29,7 @@
         <activity
             android:name=".Monitoring">
         </activity>
-        <activity
-            android:name=".SensorBT">
-        </activity>
+   
 
         <service android:name=".BluetoothService"></service>
 

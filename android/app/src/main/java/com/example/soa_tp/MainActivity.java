@@ -10,6 +10,7 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.Button;
 import android.widget.Toast;
 
@@ -131,6 +132,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             if(x > 20 || y > 20 || z > 20){  // osea si hubo algun cambio significativo enviamos el mensaje
                 bluetoothServiceIntent.putExtra("message", "R");
                 startService(bluetoothServiceIntent);
+                Log.e("test", "entro sensor");
             }
         }
     }
