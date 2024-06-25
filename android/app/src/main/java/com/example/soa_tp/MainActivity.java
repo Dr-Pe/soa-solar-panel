@@ -68,6 +68,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     private void initBt(){
         startService(bluetoothServiceIntent);   // como ya esta iniciado, solo envia el mensaje y se toma con el metodo "onStartCommand"
+        bluetoothServiceIntent.removeExtra("message");
 
     }
     @Override
@@ -183,6 +184,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             if(x > 20 || y > 20 || z > 20){  // osea si hubo algun cambio significativo enviamos el mensaje
                 bluetoothServiceIntent.putExtra("message", "R");
                 startService(bluetoothServiceIntent);
+                bluetoothServiceIntent.removeExtra("message");
+
             }
         }
     }
