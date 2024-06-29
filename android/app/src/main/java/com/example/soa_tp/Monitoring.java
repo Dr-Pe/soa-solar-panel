@@ -29,32 +29,41 @@ import java.util.Date;
 import java.util.Locale;
 
 public class Monitoring extends AppCompatActivity{
+    // Constantes
+    private static final float TEXT_SIZE = 11;
+    private static final float GRANULARITY = 1;
+    private static final float MAX_AXIS_Y = 100;
+    private static final float MIN_AXIS_Y = 0;
+    private static final int MAX_SENSOR_VALUE = 2046;
+    private static final int MAX_PERCENT = 100;
+    private static final int MAX_BAR = 24;
+    private static final int MIN_BAR = 0;
+    private static final int DEFAULT_VALUE_BAR = 0;
+    private static final int DEFAULT_HOUR = -1;
+
+    // Interfaz
+    private BarChart barChart;
     private ArrayList<BarEntry> bars;
     private ArrayList<Float> dataPerHour;
     private int currentHour;
 
-
-
-    BarChart barChart;
-
+    // Receivers
     private BroadcastReceiver receiverSENSORS;
     private BroadcastReceiver receiverNOBLUETOOTH;
     private BroadcastReceiver receiverBLUETOOTHDISABLED;
     private BroadcastReceiver receiverBLUETOOTHDISCONNECTED;
 
-
+    // Persistencia de datos
     private SharedPreferences listData;
     private SharedPreferences.Editor editor;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_monitoring);
 
         listData = getSharedPreferences("dataList",MODE_PRIVATE);
         editor = listData.edit();
-
 
         initReceivers();
 
@@ -66,29 +75,27 @@ public class Monitoring extends AppCompatActivity{
         textDate.setText("Análisis del día: " + today);
 
         dataPerHour = new ArrayList<Float>();
-        currentHour = -1;
+        currentHour = DEFAULT_HOUR;
 
         barChart = findViewById(R.id.barChartGraphic);
         bars = new ArrayList<>();
         initBars();
         downloadData();
 
-
         BarDataSet dataSet = new BarDataSet(bars, "Intensidad de luz por hora");
         dataSet.setColor(Color.BLACK);
         dataSet.setValueTextColor(Color.BLACK);
-        dataSet.setValueTextSize(12f);
+        dataSet.setValueTextSize(TEXT_SIZE);
 
         BarData data = new BarData(dataSet);
         barChart.setData(data);
         barChart.getDescription().setEnabled(false);
 
-
         XAxis xAxis = barChart.getXAxis();
         xAxis.setTextColor(Color.BLACK);
         xAxis.setGridColor(Color.BLACK);
-        xAxis.setTextSize(12f);
-        xAxis.setGranularity(1f); // seteo la diferencia entre valores de barras en eje X 1-2-3-...
+        xAxis.setTextSize(TEXT_SIZE);
+        xAxis.setGranularity(GRANULARITY); // seteo la diferencia entre valores de barras en eje X 1-2-3-...
         xAxis.setValueFormatter(new ValueFormatter() {
             @Override
             public String  getFormattedValue(float value) {
@@ -98,13 +105,12 @@ public class Monitoring extends AppCompatActivity{
         YAxis leftYAxis = barChart.getAxisLeft();
         leftYAxis.setTextColor(Color.BLACK);
         leftYAxis.setGridColor(Color.BLACK);
-        leftYAxis.setTextSize(12f);
-        leftYAxis.setAxisMinimum(0f); //
-        leftYAxis.setAxisMaximum(100f); //
+        leftYAxis.setTextSize(TEXT_SIZE);
+        leftYAxis.setAxisMinimum(MIN_AXIS_Y);
+        leftYAxis.setAxisMaximum(MAX_AXIS_Y);
 
         YAxis rightYAxis = barChart.getAxisRight();
-        rightYAxis.setTextColor(Color.BLACK);
-        rightYAxis.setTextSize(10f);
+        rightYAxis.setEnabled(false);
 
         barChart.invalidate(); // pinta el grafico
     }
@@ -129,10 +135,10 @@ public class Monitoring extends AppCompatActivity{
         initReceivers();
     }
     
-    
+
     private void initBars(){
-        for( int i = 0; i < 24; i++){
-            bars.add(new BarEntry((float)i,0));
+        for( int i = MIN_BAR; i < MAX_BAR; i++){
+            bars.add(new BarEntry((float)i,DEFAULT_VALUE_BAR));
         }
     }
 
@@ -145,7 +151,7 @@ public class Monitoring extends AppCompatActivity{
             currentHour = newHour;
         }
 
-        float successPercentage = ((sensorEast + sensorWest) * 100)/2046 ;
+        float successPercentage = ((sensorEast + sensorWest) * MAX_PERCENT)/MAX_SENSOR_VALUE ;
         dataPerHour.add(successPercentage);
         bars.get(currentHour).setY(getAvgValue());
 
@@ -158,10 +164,10 @@ public class Monitoring extends AppCompatActivity{
         float value = 0;
 
         for(int i = 0; i < dataPerHour.size(); i++){
-            value +=dataPerHour.get(i);
+            value += dataPerHour.get(i);
         }
-        float avg = value/cant;
-        return avg;
+
+        return value/cant;
     }
     private void initReceivers(){
         receiverSENSORS = new BroadcastReceiver() {
@@ -216,8 +222,6 @@ public class Monitoring extends AppCompatActivity{
     }
 
     private void downloadData() {
-
-
         // fecha de shared preference
         String today_sh = listData.getString("fecha", "default");
 
@@ -226,34 +230,26 @@ public class Monitoring extends AppCompatActivity{
         SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
         String today = sdf.format(now);
 
+        // TODO: cambiar el orden de los IFS
         // si la fecha no existe en el sh, entonces subo la fecha de hoy
         if(today_sh.equals("default")) {
             editor.putString("fecha", today);
-            for(int i = 0; i< 24; i++) {
-                bars.set(i, new BarEntry((float)i,0));
-                editor.putString(Integer.toString(i), "0");
+            for(int i = MIN_BAR; i < MAX_BAR; i++) {
+                bars.set(i, new BarEntry((float)i,DEFAULT_VALUE_BAR));
+                editor.putString(Integer.toString(i), String.valueOf(DEFAULT_VALUE_BAR));
             }
             editor.commit();
         } else if (!today_sh.equals(today)){    // si la fecha de hoy no es igual a la guardada, limpio las barras
-            for(int i = 0; i< 24; i++) {
-                bars.set(i, new BarEntry((float)i,0));
+            for(int i = MIN_BAR; i < MAX_BAR; i++) {
+                bars.set(i, new BarEntry((float)i,DEFAULT_VALUE_BAR));
             }
         } else {    // si la fecha de hoy, es igual a la guardada, entonces actualizo las barras
             String data;
-            for(int i = 0; i< 24; i++) {
+            for(int i = MIN_BAR; i < MAX_BAR; i++) {
                 data = listData.getString(Integer.toString(i), "default");
                 bars.set(i, new BarEntry((float)i,Float.parseFloat(data)));
             }
         }
-/*
-        String data;
-        for(int i = 0; i< 24; i++) {
-            data = listData.getString(Integer.toString(i), "default");
-            if (!data.equals("default")){
-                bars.set(i, new BarEntry((float)i,Float.parseFloat(data)));
-            }
-
-        }*/
 
         barChart.invalidate();
     }

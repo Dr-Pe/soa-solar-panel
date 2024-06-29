@@ -19,19 +19,27 @@ import java.util.Set;
 import java.util.UUID;
 
 public class BluetoothService extends Service {
-    //  modulo hc-05 permite comunicarse mediante bytes en serie: servicio de puerto serie, el UUID de este servicio es:
-    private static final UUID MY_UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
 
+    //  modulo hc-05 permite comunicarse mediante bytes en serie: servicio de puerto serie, el UUID de este servicio es:
+
+    // Constantes
+    private static final UUID MY_UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
+    private static final int TAM_BUFF = 1024;
+    private static final String REGEX_FILTER = "\\([0-9]+,[0-9]+\\)\\n";
+    // Bluetooth
     private BluetoothAdapter btAdapter;
     private BluetoothSocket btSocket;
     private BluetoothDevice sunflowerBT;
     private InputStream inStream;
     private OutputStream outStream;
-    private Thread monitoingThread;
-
     private boolean connected = false;
 
-    @SuppressLint("MissingPermission")  // a partir de cierta version en android pide permisos en tiempo de ejecucion, al pedo
+
+    private Thread monitoringThread;
+
+
+
+    @SuppressLint("MissingPermission")
     @Override
     public void onCreate() {
         super.onCreate();
@@ -52,7 +60,6 @@ public class BluetoothService extends Service {
             stopSelf();
             return;
         }
-
         // busco el hc 05
         Set<BluetoothDevice> devicesBT = btAdapter.getBondedDevices();
         for (BluetoothDevice device : devicesBT){
@@ -69,7 +76,6 @@ public class BluetoothService extends Service {
         }
 
         try {
-
             btSocket = sunflowerBT.createRfcommSocketToServiceRecord(MY_UUID);    // asocia la conexion al servicio de comunicacion del hc-05
             btSocket.connect();
             connected = true;
@@ -78,12 +84,10 @@ public class BluetoothService extends Service {
 
             monitorLightSensors();
         } catch (IOException e) {
-
             sendMSGtoActivities("all_activities.BLUETOOTH_DISCONNECTED");
             Log.e("error", "bt desconectado");
             stopSelf();
         }
-
     }
     @Override
     public  void onDestroy(){
@@ -102,17 +106,15 @@ public class BluetoothService extends Service {
         Intent intent = new Intent();
         intent.setAction(msg);
         LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
-
-
     }
 
     private void monitorLightSensors() {
-        monitoingThread = new Thread(this::readLightSensors);
-        monitoingThread.start();
+        monitoringThread = new Thread(this::readLightSensors);
+        monitoringThread.start();
     }
     private void readLightSensors(){
         byte[] buffer;
-        buffer = new byte[1024];
+        buffer = new byte[TAM_BUFF];
         int numBytes;
 
         while (true) {
@@ -121,7 +123,7 @@ public class BluetoothService extends Service {
                     numBytes = inStream.read(buffer);
                     String data = new String(buffer, 0, numBytes);
 
-                    if(data.matches("\\([0-9]+,[0-9]+\\)\\n")){
+                    if(data.matches(REGEX_FILTER)){
                         data = data.replace("(", "").replace(")", "").replace("\n", "");
                         String[] parseo = data.split(",");             // el sensor envia este formato: 10-20
                         int sensorEast = Integer.parseInt(parseo[0]);
@@ -132,12 +134,11 @@ public class BluetoothService extends Service {
                 }
             } catch (IOException e) {
                 sendMSGtoActivities("all_activities.BLUETOOTH_DISCONNECTED");
-                Log.e("error", "bt en curso desconectado");
+                Log.e("error", "bluetooth en curso desconectado");
                 stopSelf();
             }
         }
     }
-
     // envia los datos de los sensores a la actividad monitoreo
     // y esa actividad lo lee con "BroadcastReceiver"
     private void sendDataToMonitoring(int sensorEast, int sensorWest) {
@@ -148,13 +149,13 @@ public class BluetoothService extends Service {
 
         LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
     }
-
     //  siempre al iniciar un servicio, se ejecuta onCreate y despues onStartCommand SIEMPRE
     //  en la primer ejecucion no existe nada en message y tira error al metodo sendMsgToSunflower...
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         String message = intent.getStringExtra("message");
         Log.e("onStartCommand", "recibiendo mensaje en service");
+
         if (connected && message != null ){
             sendMsgToSunflower(message);
             sendMSGtoActivities("MainActivity.HC_05_OK");
