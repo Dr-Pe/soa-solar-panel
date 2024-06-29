@@ -23,9 +23,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
 
     // Constantes
-    private static final int AXIS_X = 20;
-    private static final int AXIS_Y = 20;
-    private static final int AXIS_Z = 20;
+    private static final int MIN_AXIS_X = 20;
+    private static final int MIN_AXIS_Y = 20;
+    private static final int MIN_AXIS_Z = 20;
     // Bluetooth
     private Intent bluetoothServiceIntent;
     private Thread btThread;
@@ -48,7 +48,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
 
         bluetoothServiceIntent = new Intent(this, BluetoothService.class);
 
@@ -186,10 +185,11 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             float y = event.values[1];
             float z = event.values[2];
 
-            if(x > AXIS_X || y > AXIS_Y || z > AXIS_Z){
+            if(x > MIN_AXIS_X || y > MIN_AXIS_Y || z > MIN_AXIS_Z){
                 bluetoothServiceIntent.putExtra("message", "R");
-                startService(bluetoothServiceIntent);
-                bluetoothServiceIntent.removeExtra("message");
+                btThread = new Thread(this::initBt);
+                btThread.start();
+
             }
         }
     }

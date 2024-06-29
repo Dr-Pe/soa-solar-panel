@@ -20,12 +20,13 @@ import java.util.UUID;
 
 public class BluetoothService extends Service {
 
-    //  modulo hc-05 permite comunicarse mediante bytes en serie: servicio de puerto serie, el UUID de este servicio es:
-
     // Constantes
+
+    //  modulo hc-05 permite comunicarse mediante bytes en serie: servicio de puerto serie, el UUID de este servicio es:
     private static final UUID MY_UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
     private static final int TAM_BUFF = 1024;
     private static final String REGEX_FILTER = "\\([0-9]+,[0-9]+\\)\\n";
+    private static final String ID_BLUETOOTH = "HC-05 ";
     // Bluetooth
     private BluetoothAdapter btAdapter;
     private BluetoothSocket btSocket;
@@ -33,11 +34,7 @@ public class BluetoothService extends Service {
     private InputStream inStream;
     private OutputStream outStream;
     private boolean connected = false;
-
-
     private Thread monitoringThread;
-
-
 
     @SuppressLint("MissingPermission")
     @Override
@@ -63,7 +60,7 @@ public class BluetoothService extends Service {
         // busco el hc 05
         Set<BluetoothDevice> devicesBT = btAdapter.getBondedDevices();
         for (BluetoothDevice device : devicesBT){
-            if(device.getName().equals("HC-05 ")) {
+            if(device.getName().equals(ID_BLUETOOTH)) {
                 sunflowerBT = device;
             }
         }
