@@ -230,25 +230,28 @@ public class Monitoring extends AppCompatActivity{
         SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
         String today = sdf.format(now);
 
-        // TODO: cambiar el orden de los IFS
-        // si la fecha no existe en el sh, entonces subo la fecha de hoy
-        if(today_sh.equals("default")) {
+        if(!today_sh.equals("default")){
+            if (today_sh.equals(today)){
+                // si la fecha de hoy, es igual a la guardada, entonces actualizo las barras
+                String data;
+                for(int i = MIN_BAR; i < MAX_BAR; i++) {
+                    data = listData.getString(Integer.toString(i), "default");
+                    bars.set(i, new BarEntry((float)i,Float.parseFloat(data)));
+                }
+            }else{
+                // si la fecha de hoy no es igual a la guardada, limpio las barras
+                for(int i = MIN_BAR; i < MAX_BAR; i++) {
+                    bars.set(i, new BarEntry((float)i,DEFAULT_VALUE_BAR));
+                }
+            }
+        }else{
+            // si la fecha no existe en el sh, entonces subo la fecha de hoy
             editor.putString("fecha", today);
             for(int i = MIN_BAR; i < MAX_BAR; i++) {
                 bars.set(i, new BarEntry((float)i,DEFAULT_VALUE_BAR));
                 editor.putString(Integer.toString(i), String.valueOf(DEFAULT_VALUE_BAR));
             }
             editor.commit();
-        } else if (!today_sh.equals(today)){    // si la fecha de hoy no es igual a la guardada, limpio las barras
-            for(int i = MIN_BAR; i < MAX_BAR; i++) {
-                bars.set(i, new BarEntry((float)i,DEFAULT_VALUE_BAR));
-            }
-        } else {    // si la fecha de hoy, es igual a la guardada, entonces actualizo las barras
-            String data;
-            for(int i = MIN_BAR; i < MAX_BAR; i++) {
-                data = listData.getString(Integer.toString(i), "default");
-                bars.set(i, new BarEntry((float)i,Float.parseFloat(data)));
-            }
         }
 
         barChart.invalidate();
