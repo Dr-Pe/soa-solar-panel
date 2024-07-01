@@ -231,16 +231,16 @@ public class Monitoring extends AppCompatActivity{
                 bars.set(i, new BarEntry((float)i,Float.parseFloat(value_bar)));
             }
         } else if (today_sh.equals("default")){ // si la fecha no existe en el sh, entonces subo la fecha de hoy
-            for(int i = MIN_BAR; i < MAX_BAR; i++) {
-                bars.set(i, new BarEntry((float)i,DEFAULT_VALUE_BAR));
-            }
-        } else{ // si la fecha de hoy no es igual a la guardada, limpio las barras
             editor.putString("fecha", today);
             for(int i = MIN_BAR; i < MAX_BAR; i++) {
                 bars.set(i, new BarEntry((float)i,DEFAULT_VALUE_BAR));
                 editor.putString(Integer.toString(i), String.valueOf(DEFAULT_VALUE_BAR));
             }
             editor.commit();
+        } else{ // si la fecha de hoy no es igual a la guardada, limpio las barras
+            for(int i = MIN_BAR; i < MAX_BAR; i++) {
+                bars.set(i, new BarEntry((float)i,DEFAULT_VALUE_BAR));
+            }
         }
     }
 
