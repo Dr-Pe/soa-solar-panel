@@ -11,6 +11,7 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.Button;
 import android.widget.Toast;
 
@@ -47,10 +48,44 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Log.i("Estado", "Create mainActivity");
         setContentView(R.layout.activity_main);
+        initReceivers();
+        initComponents();
+        mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+    }
 
+    @Override
+    protected void onPause() {
+        super.onPause();
+        Log.i("Estado", "Pause mainActivity");
+        unregisterReceivers();
+    }
+
+    @Override
+    protected void onStop(){
+        super.onStop();
+        Log.i("Estado", "Stop mainActivity");
+        unregisterReceivers();
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        Log.i("Estado", "Start mainActivity");
+        registerReceivers();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        Log.i("Estado", "Resume mainActivity");
+        initReceivers();
+        enableButtons();
+
+    }
+    private void initComponents(){
         bluetoothServiceIntent = new Intent(this, BluetoothService.class);
-
         restartSystemButton = findViewById(R.id.restartSystemButton);
         restartSystemButton.setOnClickListener(v -> {
             disableButtons();
@@ -67,38 +102,11 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             btThread = new Thread(this::initBt);
             btThread.start();
         });
-
-        mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
     }
 
     private void initBt(){
         startService(bluetoothServiceIntent);   // como ya esta iniciado, solo envia el mensaje y se toma con el metodo "onStartCommand"
         bluetoothServiceIntent.removeExtra("message");
-    }
-    @Override
-    protected void onPause() {
-        super.onPause();
-        unregisterReceivers();
-    }
-
-    @Override
-    protected void onStop(){
-        super.onStop();
-        unregisterReceivers();
-    }
-
-    @Override
-    protected void onStart() {
-        super.onStart();
-        initReceivers();
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        initReceivers();
-        enableButtons();
-
     }
 
     private void disableButtons(){
@@ -128,8 +136,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 enableButtons();
             }
         };
-        LocalBroadcastManager.getInstance(this).registerReceiver(receiver_no_bluetooth, new IntentFilter("all_activities.NO_BLUETOOTH"));
-
         receiver_bluetooth_disabled = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
@@ -137,8 +143,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 enableButtons();
             }
         };
-        LocalBroadcastManager.getInstance(this).registerReceiver(receiver_bluetooth_disabled, new IntentFilter("all_activities.BLUETOOTH_DISABLED"));
-
         receiver_bluetooth_disconnected = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
@@ -146,8 +150,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 enableButtons();
             }
         };
-        LocalBroadcastManager.getInstance(this).registerReceiver(receiver_bluetooth_disconnected, new IntentFilter("all_activities.BLUETOOTH_DISCONNECTED"));
-
         receiver_bluetooth_HC_05_error = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
@@ -155,8 +157,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 enableButtons();
             }
         };
-        LocalBroadcastManager.getInstance(this).registerReceiver(receiver_bluetooth_HC_05_error, new IntentFilter("all_activities.HC_05_ERROR"));
-
         receiver_bluetooth_msg_ok = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
@@ -164,8 +164,14 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 enableButtons();
             }
         };
-        LocalBroadcastManager.getInstance(this).registerReceiver(receiver_bluetooth_msg_ok, new IntentFilter("MainActivity.HC_05_OK"));
+    }
 
+    private void registerReceivers(){
+        LocalBroadcastManager.getInstance(this).registerReceiver(receiver_no_bluetooth, new IntentFilter("all_activities.NO_BLUETOOTH"));
+        LocalBroadcastManager.getInstance(this).registerReceiver(receiver_bluetooth_disabled, new IntentFilter("all_activities.BLUETOOTH_DISABLED"));
+        LocalBroadcastManager.getInstance(this).registerReceiver(receiver_bluetooth_disconnected, new IntentFilter("all_activities.BLUETOOTH_DISCONNECTED"));
+        LocalBroadcastManager.getInstance(this).registerReceiver(receiver_bluetooth_HC_05_error, new IntentFilter("all_activities.HC_05_ERROR"));
+        LocalBroadcastManager.getInstance(this).registerReceiver(receiver_bluetooth_msg_ok, new IntentFilter("MainActivity.HC_05_OK"));
         mSensorManager.registerListener(this, mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER), SensorManager.SENSOR_DELAY_NORMAL);
     }
 

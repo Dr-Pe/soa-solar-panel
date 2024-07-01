@@ -40,8 +40,8 @@ public class BluetoothService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
+        Log.i("Estado", "Create bluetoothService");
 
-        Log.e("onCrate", "creando service");
         btAdapter = BluetoothAdapter.getDefaultAdapter();
         // no existe placa bluetooth
         if (btAdapter == null) {
@@ -89,6 +89,7 @@ public class BluetoothService extends Service {
     @Override
     public  void onDestroy(){
         super.onDestroy();
+        Log.i("Estado", "Destroy bluetoothService");
         if (btSocket != null) {
             try {
                 btSocket.close();
@@ -98,6 +99,19 @@ public class BluetoothService extends Service {
         }
     }
 
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        String message = intent.getStringExtra("message");
+        Log.i("onStartCommand", "recibiendo mensaje en bluetoothService");
+
+        if (connected && message != null ){
+            sendMsgToSunflower(message);
+            sendMSGtoActivities("MainActivity.HC_05_OK");
+            Log.i("onStartCommand", "mensaje enviado con exito");
+        }
+
+        return START_STICKY;
+    }
 
     private void sendMSGtoActivities(String msg){
         Intent intent = new Intent();
@@ -148,19 +162,7 @@ public class BluetoothService extends Service {
     }
     //  siempre al iniciar un servicio, se ejecuta onCreate y despues onStartCommand SIEMPRE
     //  en la primer ejecucion no existe nada en message y tira error al metodo sendMsgToSunflower...
-    @Override
-    public int onStartCommand(Intent intent, int flags, int startId) {
-        String message = intent.getStringExtra("message");
-        Log.e("onStartCommand", "recibiendo mensaje en service");
 
-        if (connected && message != null ){
-            sendMsgToSunflower(message);
-            sendMSGtoActivities("MainActivity.HC_05_OK");
-            Log.e("onStartCommand", "mensaje enviado con exito");
-        }
-
-        return START_STICKY;
-    }
 
     public void sendMsgToSunflower(String message) {
         byte[] msgBuffer = message.getBytes();
@@ -172,8 +174,6 @@ public class BluetoothService extends Service {
         }
     }
 
-    //  se usa si una actividad usa bindService para vincularse al servicio
-    //  es otro metodo de comunicar sin usar broadcast, seria mas recomendado pero es mas codigo que no lei
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
