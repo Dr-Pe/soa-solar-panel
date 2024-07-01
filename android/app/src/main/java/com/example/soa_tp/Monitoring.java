@@ -74,7 +74,6 @@ public class Monitoring extends AppCompatActivity{
     protected void onStart(){
         super.onStart();
         Log.i("Estado", "Start monitoring");
-        registerReceivers();
         barChart.invalidate(); // pinta el grafico
     }
     @Override
@@ -87,8 +86,6 @@ public class Monitoring extends AppCompatActivity{
     protected void onStop() {
         super.onStop();
         Log.i("Estado", "Stop monitoring");
-        unregisterReceivers();
-        finish();
     }
     @Override
     protected void onResume() {
@@ -97,6 +94,12 @@ public class Monitoring extends AppCompatActivity{
         downloadDataBars();
         barChart.invalidate();
         registerReceivers();
+    }
+
+    @Override
+    protected void onDestroy(){
+        super.onDestroy();
+        Log.i("Estado", "Destroy monitoring");
     }
 
     private void initReceivers(){
@@ -221,7 +224,6 @@ public class Monitoring extends AppCompatActivity{
         // fecha de hoy
         String today = getCurrentDate();
 
-        Log.e("error sh",listData.getAll().toString());
         if(today_sh.equals(today)){ // si la fecha de hoy, es igual a la guardada, entonces actualizo las barras
             String value_bar;
             for(int i = MIN_BAR; i < MAX_BAR; i++) {

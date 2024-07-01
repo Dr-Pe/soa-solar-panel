@@ -73,17 +73,21 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     protected void onStart() {
         super.onStart();
         Log.i("Estado", "Start mainActivity");
-        registerReceivers();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
         Log.i("Estado", "Resume mainActivity");
-        initReceivers();
+        registerReceivers();
         enableButtons();
-
     }
+    @Override
+    protected void onDestroy(){
+        super.onDestroy();
+        Log.i("Estado", "Destroy mainActivity");
+    }
+
     private void initComponents(){
         bluetoothServiceIntent = new Intent(this, BluetoothService.class);
         restartSystemButton = findViewById(R.id.restartSystemButton);
